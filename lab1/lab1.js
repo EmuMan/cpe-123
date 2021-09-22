@@ -1,62 +1,120 @@
-let img;
-
 class Vector3 {
 
    constructor(x, y, z) {
       this.x = x;
       this.y = y;
       this.z = z;
-   }
-
-   normalize() {
-      let l = this.length
-      this.x /= l;
-      this.y /= l;
-      this.z /= l;
-   }
-
-   get length() {
-      return Math.sqrt(this.x * this.x + this.y * this.y + this.z * this.z)
-   }
+    }
 
 }
 
-
-function toRadians(x) {
-   return x * Math.PI / 180;
-}
-
-function rotateVector() {
-
-}
+let rain;
 
 function setup() {
    createCanvas(710, 400, WEBGL);
+   rain = [];
  }
  
  function draw() {
-   background(200);
+   background(0);
    
    ambientLight(60, 60, 60);
-   pointLight(255, 255, 255, 0, -100, 0);
 
-   noStroke()
- 
-   translate(0, 0, 0);
-   push();
-   // rotateZ(frameCount * 0.01);
-   // rotateX(frameCount * 0.01);
-   // rotateY(frameCount * 0.01);
-   rotateX(toRadians(90));
-   ambientMaterial(250);
-   torus(70, 24, 16);
+   stroke(255, 255, 255);
+
+   for (let i = 0; i < 7; i++) {
+      rain.push(new Vector3(Math.random() * 500 - 250, -600, -Math.random() * 1000 + 200))
+   }
+   
+   let toRemove = [];
+   for (let i = 0; i < rain.length; i++) {
+      if (rain[i].y > 200) {
+         toRemove.push(i);
+         continue;
+      }
+      rain[i].y += 15;
+      push();
+      translate(rain[i].x, rain[i].y, rain[i].z);
+      fill(255, 255, 255)
+      box(0.2, 10, 0.2);
+      pop();
+   }
+
+   for (let i = 0; i < toRemove.length; i++) {
+      rain.shift();
+   }
+
+   pointLight(255, 255, 255, 141.3146514892578, -32.90378189086914, -3.381527900695801);   pointLight(255, 255, 255, -133.0565643310547, -42.076812744140625, 0.18996751308441162);   pointLight(255, 255, 255, 136.54150390625, -43.347808837890625, -587.4629516601562);   pointLight(255, 255, 255, -137.8297119140625, -52.520843505859375, -583.8914794921875);   push();
+   translate(-248.630859375, -393.012451171875, -386.6565856933594);
+   rotateX(0.0);
+   rotateY(-0.0);
+   rotateZ(-0.0);
+   fill(0);
+   box(17.664451599121094, 1079.8013916015625, 1032.4981689453125);
    pop();
- 
-   translate(0, -10, 0);
+
    push();
-   rotateX(toRadians(90));
-   fill(220, 160, 160);
-   torus(70, 24, 16);
+   translate(248.646728515625, -393.012451171875, -386.6565856933594);
+   rotateX(0.0);
+   rotateY(-0.0);
+   rotateZ(-0.0);
+   fill(0);
+   box(17.664451599121094, 1079.8013916015625, 1032.4981689453125);
    pop();
+
+   push();
+   translate(0.016678333282470703, 159.02076721191406, -386.6566162109375);
+   rotateX(0.0);
+   rotateY(-0.0);
+   rotateZ(-0.0);
+   fill(0);
+   box(280.3557434082031, 10.856895446777344, 1032.4981689453125);
+   pop();
+
+   push();
+   translate(-146.71331787109375, 149.55340576171875, -386.6566162109375);
+   rotateX(0.0);
+   rotateY(-0.0);
+   rotateZ(-0.0);
+   fill(0);
+   box(12.942465782165527, 10.856895446777344, 1032.4981689453125);
+   pop();
+
+   push();
+   translate(147.42593383789062, 149.55340576171875, -386.6566162109375);
+   rotateX(0.0);
+   rotateY(-0.0);
+   rotateZ(-0.0);
+   fill(0);
+   box(12.942465782165527, 10.856895446777344, 1032.4981689453125);
+   pop();
+
+   push();
+   translate(-196.14613342285156, 153.0321502685547, -386.6566162109375);
+   rotateX(0.0);
+   rotateY(-0.0);
+   rotateZ(-0.0);
+   fill(0);
+   box(101.99214172363281, 10.856895446777344, 1032.4981689453125);
+   pop();
+
+   push();
+   translate(197.4579620361328, 153.0321502685547, -386.6566162109375);
+   rotateX(0.0);
+   rotateY(-0.0);
+   rotateZ(-0.0);
+   fill(0);
+   box(101.99214172363281, 10.856895446777344, 1032.4981689453125);
+   pop();
+
+   push();
+   translate(-0.0, -369.915283203125, -893.9174194335938);
+   rotateX(0.0);
+   rotateY(-0.0);
+   rotateZ(-0.0);
+   fill(0);
+   box(475.7285461425781, 1032.440185546875, 27.385282516479492);
+   pop();
+
 
  }

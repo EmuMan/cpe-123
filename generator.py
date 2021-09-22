@@ -1,0 +1,129 @@
+bl_info = {
+    "name": "Export to p5.js",
+    "description": "Exports a scene to a hardcoded file using the p5.js library",
+    "author": "EmuMan",
+    "version": (0, 0, 1),
+    "blender": (2, 90, 0),
+    "location": "3D View > p5.js",
+    "warning": "",
+    "wiki_url": "",
+    "tracker_url": "",
+    "category": "Import-Export"
+}
+
+import bpy
+from bpy.props import (StringProperty,
+                       PointerProperty,
+                       )
+from bpy.types import (Panel,
+                       Operator,
+                       PropertyGroup,
+                       )
+from bpy.utils import register_class, unregister_class
+
+class GeneralProperties(PropertyGroup):
+
+    template_filepath: StringProperty(
+        name = "Template File",
+        description = "The template text file to be used",
+        default = "",
+        maxlen = 1024,
+        subtype = 'FILE_PATH'
+    )
+
+    output_dirpath: StringProperty(
+        name = "Output Directory",
+        description = "The directory to save the file in",
+        default = "",
+        maxlen = 1024,
+        subtype = 'DIR_PATH'
+    )
+
+    output_filename: StringProperty(
+        name = "Filename",
+        description = "The name of the output file",
+        default = "",
+        maxlen = 1024,
+        subtype = 'FILE_NAME'
+    )
+
+class Export(Operator):
+    bl_label = "Export as p5.js"
+    bl_idname = "wm.export_p5js"
+
+    def execute(self, context):
+        scene = context.scene
+        tool = scene.p5js_general_tool
+
+        final_lines = []
+
+        with open(tool.template_filepath, "rt") as f:
+            template_lines = f.readlines()
+
+        for line in template_lines:
+            if r"%%code%%" in line:
+                indentation = ""
+                for char in line:
+                    if char == " " or char == "\t": indentation += char
+                    else: break
+
+                for object in bpy.data.objects:
+                    if object.name.startswith("obj_"):
+                        object_type = object.name[4:]
+                        final_lines.append(indentation + "push();\n")
+                        final_lines.append(indentation + f"translate({-object.location.x}, {object.location.y}, {object.location.z});\n")
+                        final_lines.append(indentation + f"rotateX({object.rotation_euler.x});\n")
+                        final_lines.append(indentation + f"rotateY({-object.rotation_euler.z});\n")
+                        final_lines.append(indentation + f"rotateZ({-object.rotation_euler.y});\n")
+                        final_lines.append(indentation + "fill(0);\n")
+                        if "box" in object_type:
+                            final_lines.append(indentation + f"box({object.scale.x * 2}, {object.scale.y * 2}, {object.scale.z * 2});\n")
+                        final_lines.append(indentation + "pop();\n")
+                        final_lines.append("\n")
+                    elif "light" in object.name:
+                        final_lines.append(indentation + f"pointLight(255, 255, 255, {-object.location.x}, {object.location.y}, {object.location.z});")
+            else:
+                final_lines.append(line)
+                
+        with open(str(tool.output_dirpath) + str(tool.output_filename), "wt+") as f:
+            f.writelines(final_lines)
+
+        return {"FINISHED"}
+
+class GeneralPanel(Panel):
+    bl_label = "General"
+    bl_idname = "OBJECT_PT_p5js_general"
+    bl_space_type = "VIEW_3D"
+    bl_region_type = "UI"
+    bl_category = "p5.js"
+    bl_context = "objectmode"
+
+    @classmethod
+    def poll(cls, context):
+        return True
+    
+    def draw(self, context):
+        layout = self.layout
+        scene = context.scene
+        tool = scene.p5js_general_tool
+
+        layout.prop(tool, "template_filepath")
+        layout.prop(tool, "output_dirpath")
+        layout.prop(tool, "output_filename")
+        layout.operator("wm.export_p5js")
+
+classes = (
+    GeneralProperties,
+    Export,
+    GeneralPanel
+)
+
+def register():
+    for cls in classes:
+        register_class(cls)
+    bpy.types.Scene.p5js_general_tool = PointerProperty(type=GeneralProperties)
+
+def unregister():
+    for cls in reversed(classes):
+        unregister_class(cls)
+    del bpy.types.Scene.p5js_general_tool
