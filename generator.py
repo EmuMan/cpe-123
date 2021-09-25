@@ -70,18 +70,35 @@ class Export(Operator):
                 for object in bpy.data.objects:
                     if object.name.startswith("obj_"):
                         object_type = object.name[4:]
+                        try:
+                            color = [v * 255 for v in object.active_material.node_tree.nodes[1].inputs[0].default_value[:3]]
+                        except AttributeError:
+                            color = [205, 205, 205]
                         final_lines.append(indentation + "push();\n")
                         final_lines.append(indentation + f"translate({-object.location.x}, {object.location.y}, {object.location.z});\n")
                         final_lines.append(indentation + f"rotateX({object.rotation_euler.x});\n")
-                        final_lines.append(indentation + f"rotateY({-object.rotation_euler.z});\n")
-                        final_lines.append(indentation + f"rotateZ({-object.rotation_euler.y});\n")
-                        final_lines.append(indentation + "fill(0);\n")
+                        final_lines.append(indentation + f"rotateY({object.rotation_euler.z});\n")
+                        final_lines.append(indentation + f"rotateZ({object.rotation_euler.y});\n")
+                        final_lines.append(indentation + f"fill({color[0]}, {color[1]}, {color[2]});\n")
                         if "box" in object_type:
-                            final_lines.append(indentation + f"box({object.scale.x * 2}, {object.scale.y * 2}, {object.scale.z * 2});\n")
+                            final_lines.append(indentation + f"box({object.dimensions.x}, {object.dimensions.y}, {object.dimensions.z});\n")
+                        elif "plane" in object_type:
+                            final_lines.append(indentation + f"plane({object.dimensions.x}, {object.dimensions.y});\n")
+                        elif "sphere" in object.type:
+                            final_lines.append(indentation + f"sphere({object.dimensions.x / 2}, 24, 24);\n")
+                        elif "cylinder" in object.type:
+                            final_lines.append(indentation + f"cylinder({object.dimensions.x / 2}, {object.dimensions.z}, 24, 1, true, true);\n")
+                        elif "cone" in object.type:
+                            final_lines.append(indentation + f"cone({object.dimensions.x / 2}, {object.dimensions.z}, 24, 1, true);\n")
+                        elif "ellipsoid" in object.type:
+                            final_lines.append(indentation + f"ellipsoid({object.dimensions.x / 2}, {object.dimensions.y / 2}, {object.dimensions.z / 2}, 24, 24);\n")
+                        elif "torus" in object.type:
+                            final_lines.append(indentation + f"torus({(object.dimensions.x - object.dimensions.z) / 2}, {object.dimensions.z / 2});\n")
                         final_lines.append(indentation + "pop();\n")
                         final_lines.append("\n")
                     elif "light" in object.name:
-                        final_lines.append(indentation + f"pointLight(255, 255, 255, {-object.location.x}, {object.location.y}, {object.location.z});")
+                        final_lines.append(indentation + f"pointLight(255, 255, 255, {-object.location.x}, {object.location.y}, {object.location.z});\n")
+                        final_lines.append("\n")
             else:
                 final_lines.append(line)
                 
