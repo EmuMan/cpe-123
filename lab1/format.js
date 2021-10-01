@@ -16,10 +16,10 @@ function setup() {
  }
  
  function draw() {
-    
-   background(0);
+
+   background(80, 80, 120);
    
-   ambientLight(200, 200, 200);
+   ambientLight(40, 40, 40);
 
    noStroke();
 

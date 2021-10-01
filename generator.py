@@ -76,23 +76,24 @@ class Export(Operator):
                             color = [205, 205, 205]
                         final_lines.append(indentation + "push();\n")
                         final_lines.append(indentation + f"translate({-object.location.x}, {object.location.y}, {object.location.z});\n")
-                        final_lines.append(indentation + f"rotateX({object.rotation_euler.x});\n")
-                        final_lines.append(indentation + f"rotateY({object.rotation_euler.z});\n")
-                        final_lines.append(indentation + f"rotateZ({object.rotation_euler.y});\n")
+                        final_lines.append(indentation + f"rotateZ({-object.rotation_euler.z});\n")
+                        final_lines.append(indentation + f"rotateY({-object.rotation_euler.y});\n")
+                        x_rotation = object.rotation_euler.x + (3.14159265 / 2 if "box" in object_type or "cylinder" in object_type or "cone" in object_type else 0)
+                        final_lines.append(indentation + f"rotateX({x_rotation});\n")
                         final_lines.append(indentation + f"fill({color[0]}, {color[1]}, {color[2]});\n")
                         if "box" in object_type:
-                            final_lines.append(indentation + f"box({object.dimensions.x}, {object.dimensions.y}, {object.dimensions.z});\n")
+                            final_lines.append(indentation + f"box({object.dimensions.x}, {object.dimensions.z}, {object.dimensions.y});\n")
                         elif "plane" in object_type:
                             final_lines.append(indentation + f"plane({object.dimensions.x}, {object.dimensions.y});\n")
-                        elif "sphere" in object.type:
+                        elif "sphere" in object_type:
                             final_lines.append(indentation + f"sphere({object.dimensions.x / 2}, 24, 24);\n")
-                        elif "cylinder" in object.type:
+                        elif "cylinder" in object_type:
                             final_lines.append(indentation + f"cylinder({object.dimensions.x / 2}, {object.dimensions.z}, 24, 1, true, true);\n")
-                        elif "cone" in object.type:
+                        elif "cone" in object_type:
                             final_lines.append(indentation + f"cone({object.dimensions.x / 2}, {object.dimensions.z}, 24, 1, true);\n")
-                        elif "ellipsoid" in object.type:
+                        elif "ellipsoid" in object_type:
                             final_lines.append(indentation + f"ellipsoid({object.dimensions.x / 2}, {object.dimensions.y / 2}, {object.dimensions.z / 2}, 24, 24);\n")
-                        elif "torus" in object.type:
+                        elif "torus" in object_type:
                             final_lines.append(indentation + f"torus({(object.dimensions.x - object.dimensions.z) / 2}, {object.dimensions.z / 2});\n")
                         final_lines.append(indentation + "pop();\n")
                         final_lines.append("\n")
