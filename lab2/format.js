@@ -8,21 +8,28 @@ class Vector3 {
 
 }
 
-var vScale = 1.0;
-var vLoc = new Vector3(100.0, 100.0, 0.0);
+let vScale = 1.0;
+let vLoc = new Vector3(100.0, 100.0, 0.0);
+
+let skyShader;
+
+function preload() {
+  skyShader = loadShader('skyShader.vert', 'skyShader.frag');
+}
 
 function setup() {
-  createCanvas(710, 400, WEBGL);
-  rain = [];
- }
+  pixelDensity(1);
+  createCanvas(400, 500, WEBGL);
+  noStroke();
+}
  
- function draw() {
+function draw() {
 
-  background(80, 80, 120);
+  skyShader.setUniform("u_resolution", [width, height]);
+  shader(skyShader);
+  rect(0, 0, width, height);
   
   ambientLight(40, 40, 40);
-
-  noStroke();
 
   //%%main%%
 
@@ -31,4 +38,4 @@ function setup() {
     //%%scaleable%%
   pop();
 
- }
+}

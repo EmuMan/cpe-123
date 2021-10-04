@@ -101,6 +101,9 @@ class Export(Operator):
                         elif "light" in object.name:
                             final_lines.append(indentation + f"pointLight(255, 255, 255, {-object.location.x}, {object.location.y}, {object.location.z});\n")
                             final_lines.append("\n")
+                        elif "camera" in object.name:
+                            camera_up = object.matrix_world.to_quaternion() @ Vector((0.0, 1.0, 0.0))
+                            final_lines.append(indentation + f"camera({-object.location.x}, {object.location.y}, {object.location.z}, 0.0, 0.0, 0.0, {-camera_up.x}, {camera_up.y}, {camera_up.z});")
                 else:
                     final_lines.append(line)
                 
