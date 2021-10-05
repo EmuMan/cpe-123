@@ -98,7 +98,7 @@ void main() {
   
     vec3 skyColor = vec3(.5, .5, .9);
 
-    float noiseVal = transformedGradient(st.y, .75, .15) * (snoise(st.xy * 150.)+1.)/2.;
+    float noiseVal = transformedGradient(st.y, .75, .1) * (snoise(st.xy * 200.)+1.)/2.;
     
     gl_FragColor = vec4(1. - noiseVal * .8, 1. - noiseVal * .6, 1., 1.);
 

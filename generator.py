@@ -21,6 +21,8 @@ from bpy.types import (Panel,
                        )
 from bpy.utils import register_class, unregister_class
 
+from mathutils import *
+
 class GeneralProperties(PropertyGroup):
 
     template_filepath: StringProperty(
@@ -69,6 +71,15 @@ class Export(Operator):
                         else: break
 
                     for object in collection.objects:
+                        if "camera" in object.name and not object.name.startswith("obj_"):
+                            camera_up = object.matrix_world.to_quaternion() @ Vector((0.0, -1.0, 0.0))
+                            camera_forward = object.matrix_world.to_quaternion() @ Vector((0.0, 0.0, -1.0))
+                            camera_pointing = object.location + camera_forward
+                            final_lines.append(indentation + 
+                                    f"camera({-object.location.x}, {object.location.y}, {object.location.z}, {-camera_pointing.x}, {camera_pointing.y}, {camera_pointing.z}, {-camera_up.x}, {camera_up.y}, {camera_up.z});")
+                            final_lines.append("\n")
+                    
+                    for object in collection.objects:
                         if object.name.startswith("obj_"):
                             object_type = object.name[4:]
                             try:
@@ -101,11 +112,8 @@ class Export(Operator):
                         elif "light" in object.name:
                             final_lines.append(indentation + f"pointLight(255, 255, 255, {-object.location.x}, {object.location.y}, {object.location.z});\n")
                             final_lines.append("\n")
-                        elif "camera" in object.name:
-                            camera_up = object.matrix_world.to_quaternion() @ Vector((0.0, 1.0, 0.0))
-                            final_lines.append(indentation + f"camera({-object.location.x}, {object.location.y}, {object.location.z}, 0.0, 0.0, 0.0, {-camera_up.x}, {camera_up.y}, {camera_up.z});")
-                else:
-                    final_lines.append(line)
+                    continue
+            final_lines.append(line)
                 
         with open(str(tool.output_dirpath) + str(tool.output_filename), "wt+") as f:
             f.writelines(final_lines)
