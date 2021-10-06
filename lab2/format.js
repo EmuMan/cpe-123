@@ -13,7 +13,7 @@ let vLoc = new Vector3(100.0, 100.0, 0.0);
 
 let trashCount = 30;
 
-let carCount = 10;
+let cursiveFont;
 
 let skyShader;
 let shaderTexture;
@@ -28,6 +28,7 @@ let trashRotations;
 
 function preload() {
   skyShader = loadShader('skyShader.vert', 'skyShader.frag');
+  cursiveFont = loadFont("Sacramento-Regular.ttf");
 }
 
 function setup() {
@@ -69,9 +70,22 @@ function draw() {
   plane(4000, 5000);
   pop();
 
+  push();
+  fill(40, 100, 190);
+  textFont(cursiveFont);
+  textSize(58);
+  textAlign(CENTER, CENTER);
+  translate(0, 280, -113);
+  rotateZ(Math.PI);
+  rotateX(-Math.PI / 2);
+  text("la rue,", 0, 0);
+  pop();
+
   //%%main%%
 
   //%%cars%%
+
+  //%%clouds%%
 
   for (let i = 0; i < treeRotations.length; i++) {
     push();
