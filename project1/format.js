@@ -11,11 +11,11 @@ class Vector3 {
 
 // scale variables
 let scaleHouses = 1.0;
-let scaleP = 1.0;
+let scaleP = 0.5;
 
 // person location variables
-let xP = 367;
-let yP = 515;
+let xP = -300;
+let yP = 350;
 
 // used to scroll the view
 
@@ -41,7 +41,7 @@ let trashRotations;
 
 // drawing the background of Muhammed's work
 function drawStubbornBG() {
-  background('#ffffff')
+  // background('#ffffff')
   noStroke()
 
   //text
@@ -53,7 +53,7 @@ function drawStubbornBG() {
   //Tree top
   fill("#f5583e")
   push()
-    translate(200, 185)
+    translate(200, 185, -5)
     ellipse(0, 0, 110, 110)
 
     rotate(radians(0))
@@ -386,9 +386,6 @@ function drawStubbornBG() {
 // draw the person in muhammed's work
 function drawStubbornPerson() {
   push()
-    translate(xP, yP);
-    scale(scaleP);
-
     fill('#f46d71')
     ellipse(0, -70, 25, 25)
     triangle(-11, -73, -14, -76, -9, -75.5)
@@ -465,23 +462,37 @@ function setup() {
  
 function draw() {
 
-  xDisplacement += 2;
+  xDisplacement -= 5;
+  if (xDisplacement <= -600) {
+    xDisplacement += 1200;
+  }
 
   // set up the sky render
   skyShader.setUniform("u_resolution", [width, height]);
   shaderTexture.shader(skyShader);
   shaderTexture.rect(0, 0, width, height);
 
-  // draw the clouds
-  //%%clouds%%
-
   // draw muhammed's lab
   push();
-  translate(-410 / 2, -550 / 2, 0);
-  rotateX(-Math.PI / 2);
-  drawStubbornPerson();
-  translate(xDisplacement, 0, 0);
-  drawStubbornBG();
+    translate(410 / 2, 300, 550 / 2);
+    rotateX(-Math.PI / 2);
+    push();
+      translate(xP, yP, -30);
+      scale(scaleP);
+      rotateY(Math.PI);
+      drawStubbornPerson();
+    pop();
+    translate(600, -70, 50);
+    translate(xDisplacement, 0, 0);
+    push();
+      rotateY(Math.PI);
+      drawStubbornBG();
+    pop();
+    push();
+      translate(-1200, 0, 0);
+      rotateY(Math.PI);
+      drawStubbornBG();
+    pop();
   pop();
 
   // draw the plane in the background that has the sky texture on it
@@ -504,8 +515,15 @@ function draw() {
   text("la rue,", 0, 0);
   pop();
 
+  // draw the clouds
+  //%%clouds%%
+
   // translate 3d scene
   translate(xDisplacement, 0, 0);
+
+  // draw the masking walls for the 3d scene
+  fill(255, 255, 255);
+  //%%walls%%
 
   //%%main%%
 

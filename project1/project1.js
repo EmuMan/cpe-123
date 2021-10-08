@@ -11,11 +11,11 @@ class Vector3 {
 
 // scale variables
 let scaleHouses = 1.0;
-let scaleP = 1.0;
+let scaleP = 0.5;
 
 // person location variables
-let xP = 367;
-let yP = 515;
+let xP = -300;
+let yP = 350;
 
 // used to scroll the view
 
@@ -41,7 +41,7 @@ let trashRotations;
 
 // drawing the background of Muhammed's work
 function drawStubbornBG() {
-  background('#ffffff')
+  // background('#ffffff')
   noStroke()
 
   //text
@@ -53,7 +53,7 @@ function drawStubbornBG() {
   //Tree top
   fill("#f5583e")
   push()
-    translate(200, 185)
+    translate(200, 185, -5)
     ellipse(0, 0, 110, 110)
 
     rotate(radians(0))
@@ -386,9 +386,6 @@ function drawStubbornBG() {
 // draw the person in muhammed's work
 function drawStubbornPerson() {
   push()
-    translate(xP, yP);
-    scale(scaleP);
-
     fill('#f46d71')
     ellipse(0, -70, 25, 25)
     triangle(-11, -73, -14, -76, -9, -75.5)
@@ -442,7 +439,7 @@ function setup() {
 
   xDisplacement = 0;
 
-  camera(-0.0, -1252.251800537109375, 38.15106201171875, -0.0, -51.25423812866211, 38.08130645751953, -0.0, -0.06975707411766052, -0.9975641369819641);
+  camera(-0.0, -52.251800537109375, 38.15106201171875, -0.0, -51.25423812866211, 38.08130645751953, -0.0, -0.06975707411766052, -0.9975641369819641);
   //%%camera%%
 
   // separate texture for the sky
@@ -466,12 +463,58 @@ function setup() {
  
 function draw() {
 
-  xDisplacement += 2;
+  xDisplacement -= 5;
+  if (xDisplacement <= -600) {
+    xDisplacement += 1200;
+  }
 
   // set up the sky render
   skyShader.setUniform("u_resolution", [width, height]);
   shaderTexture.shader(skyShader);
   shaderTexture.rect(0, 0, width, height);
+
+  // draw muhammed's lab
+  push();
+    translate(410 / 2, 300, 550 / 2);
+    rotateX(-Math.PI / 2);
+    push();
+      translate(xP, yP, -30);
+      scale(scaleP);
+      rotateY(Math.PI);
+      drawStubbornPerson();
+    pop();
+    translate(600, -70, 50);
+    translate(xDisplacement, 0, 0);
+    push();
+      rotateY(Math.PI);
+      drawStubbornBG();
+    pop();
+    push();
+      translate(-1200, 0, 0);
+      rotateY(Math.PI);
+      drawStubbornBG();
+    pop();
+  pop();
+
+  // draw the plane in the background that has the sky texture on it
+  texture(shaderTexture);
+  push();
+  translate(0, 4000, 0);
+  rotateX(-Math.PI / 2); // if this does not work (probably on mac) remove the negative
+  plane(4000, 5000);
+  pop();
+
+  // draw the text on the bottom
+  push();
+  fill(40, 100, 190);
+  textFont(cursiveFont);
+  textSize(58);
+  textAlign(CENTER, CENTER);
+  translate(0, 280, -113);
+  rotateZ(Math.PI);
+  rotateX(-Math.PI / 2);
+  text("la rue,", 0, 0);
+  pop();
 
   // draw the clouds
   push();
@@ -1007,37 +1050,48 @@ function draw() {
 
   //%%clouds%%
 
-  // draw muhammed's lab
-  push();
-  translate(-410 / 2, -550 / 2, 0);
-  rotateX(-Math.PI / 2);
-  drawStubbornPerson();
-  translate(xDisplacement, 0, 0);
-  drawStubbornBG();
-  pop();
-
-  // draw the plane in the background that has the sky texture on it
-  texture(shaderTexture);
-  push();
-  translate(0, 4000, 0);
-  rotateX(-Math.PI / 2); // if this does not work (probably on mac) remove the negative
-  plane(4000, 5000);
-  pop();
-
-  // draw the text on the bottom
-  push();
-  fill(40, 100, 190);
-  textFont(cursiveFont);
-  textSize(58);
-  textAlign(CENTER, CENTER);
-  translate(0, 280, -113);
-  rotateZ(Math.PI);
-  rotateX(-Math.PI / 2);
-  text("la rue,", 0, 0);
-  pop();
-
   // translate 3d scene
   translate(xDisplacement, 0, 0);
+
+  // draw the masking walls for the 3d scene
+  fill(255, 255, 255);
+  push();
+  translate(-313.7536315917969, 1078.795166015625, -11.929856300354004);
+  rotateZ(-0.0);
+  rotateY(-1.570796251296997);
+  rotateX(0.0);
+  fill(255.0, 255.0, 255.0);
+  plane(293.8830261230469, 1594.502685546875);
+  pop();
+
+  push();
+  translate(312.1926574707031, 1078.795166015625, 37.65937423706055);
+  rotateZ(-0.0);
+  rotateY(-1.570796251296997);
+  rotateX(0.0);
+  fill(255.0, 255.0, 255.0);
+  plane(349.2747802734375, 1594.502685546875);
+  pop();
+
+  push();
+  translate(-1097.8787841796875, 1832.8212890625, -11.929856300354004);
+  rotateZ(-0.0);
+  rotateY(-1.570796251296997);
+  rotateX(-1.5707966089248657);
+  fill(255.0, 255.0, 255.0);
+  plane(293.8830261230469, 1594.502685546875);
+  pop();
+
+  push();
+  translate(1114.350830078125, 1832.8212890625, -11.929856300354004);
+  rotateZ(-0.0);
+  rotateY(-1.570796251296997);
+  rotateX(-1.5707966089248657);
+  fill(255.0, 255.0, 255.0);
+  plane(293.8830261230469, 1594.502685546875);
+  pop();
+
+  //%%walls%%
 
   push();
   translate(-0.0, 1075.146484375, -85.5366439819336);
@@ -2183,12 +2237,12 @@ function draw() {
   pop();
 
   push();
-  translate(246.30209350585938, 1127.088623046875, 87.3143310546875);
+  translate(245.11160278320312, 1127.088623046875, 87.3143310546875);
   rotateZ(-0.0);
   rotateY(-0.0);
   rotateX(1.570796325);
   fill(49.209992811083794, 92.33493134379387, 171.831157207489);
-  box(134.91563415527344, 23.880464553833008, 286.9319763183594);
+  box(129.76458740234375, 23.880464553833008, 286.9319763183594);
   pop();
 
   push();
@@ -3647,24 +3701,6 @@ function draw() {
   rotateX(1.570796325);
   fill(110.59113532304764, 120.05432993173599, 197.43925988674164);
   cylinder(14.886898040771484, 36.03520965576172, 24, 1, true, true);
-  pop();
-
-  push();
-  translate(-313.7536315917969, 1078.795166015625, -11.929856300354004);
-  rotateZ(-0.0);
-  rotateY(-1.570796251296997);
-  rotateX(0.0);
-  fill(255.0, 255.0, 255.0);
-  plane(293.8830261230469, 1594.502685546875);
-  pop();
-
-  push();
-  translate(312.1926574707031, 1078.795166015625, 37.65937423706055);
-  rotateZ(-0.0);
-  rotateY(-1.570796251296997);
-  rotateX(0.0);
-  fill(255.0, 255.0, 255.0);
-  plane(349.2747802734375, 1594.502685546875);
   pop();
 
   //%%main%%
