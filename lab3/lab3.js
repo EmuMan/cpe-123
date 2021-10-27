@@ -1,7 +1,7 @@
 class Page extends P5Mesh{
   
   time;
-  speed;
+  flapSpeed;
   velocity;
   resolution;
   targetRotZ;
@@ -13,7 +13,7 @@ class Page extends P5Mesh{
   constructor(name, location, rotation, scale, velocity, resolution) {
     super(name, location, rotation, scale, color(255, 255, 255));
     this.time = 0.0;
-    this.speed = 25.0;
+    this.flapSpeed = 25.0;
     this.velocity = velocity;
     this.resolution = resolution;
     this.targetRotZ = -atan(velocity.x / velocity.y);
@@ -24,7 +24,7 @@ class Page extends P5Mesh{
 
   drawMesh() {
     fill(this.color);
-    let step = this.time * this.speed;
+    let step = this.time * this.flapSpeed;
     translate(0, 0, this.flapStrength * 5 * sin(step))
     // right wing
     push();
@@ -120,5 +120,7 @@ function draw() {
 }
 
 function mousePressed() {
-  flyingPages.push(new Page('page_' + flyingPages.length, createVector(0, -37, 8), createVector(0, 0, 0), createVector(1, 1, 1), createVector(random(-0.5, 0.5), 1, 1), 10));
+  // Planning on creating a collision detection system later but this will do for now
+  if (mouseY > 250 && mouseY < 300 && mouseX > 100 && mouseX < 300)
+    flyingPages.push(new Page('page_' + flyingPages.length, createVector(0, -37, 8), createVector(0, 0, 0), createVector(1, 1, 1), createVector(random(-0.5, 0.5), 1, 1), 10));
 }
