@@ -110,7 +110,7 @@ let sketch = function(p) {
       if (depth == 4) return;
 
       let branchChance = 75; // percent chance that a branch will form every attempt
-      let maxBranches = 1;
+      let maxBranches = 3;
       let rotationFactor = p.PI / 4;
 
       let branchCount = 0;
@@ -118,9 +118,9 @@ let sketch = function(p) {
 
       while ((p.random(0, 100) < branchChance && branchCount < maxBranches) || (depth < 3 && branchCount < 1)) {
          for (let i = 0; i < 3; i++) {
-            //rotations.push(p.random(-rotationFactor, rotationFactor));
-            rotations.push(i != -1 ? (i + 1) * p.PI / 8 : 0);
-            //rotations.push(i != 0 ? (i + 1) * (1 / (depth + 1)) * p.PI / 8 : 0);
+            rotations.push(i != 1 ? p.random(-rotationFactor, rotationFactor) : 0);
+            //rotations.push(i != -1 ? (i - 1) * p.PI / 4 : 0);
+            //rotations.push(i != 1 ? (i - 1) * (1 / (depth + 1)) * p.PI / 4 : 0);
             //rotations.push(i != 0 ? (i + 1) * ((depth + 1) / 5) * p.PI / 8 : 0);
          }
          let rotation = p.createVector(rotations[0], rotations[1], rotations[2]);
@@ -129,7 +129,6 @@ let sketch = function(p) {
          currentBranch.addChild(newBranch);
          let newVector = currentVector.copy();
          newVector.setMag(newBranch.length);
-         console.log(newVector);
          rotateVector(newVector, rotation);
          console.log(newVector);
          generateBranches(tree, depth + 1, newBranch, newVector, newPosition);
@@ -170,9 +169,11 @@ let sketch = function(p) {
 
       let rotVec = p.createVector(p.frameCount / 200, p.mouseX / 200, p.mouseY / 200);
 
+      rotation = new Quaternion(-rotVec.x, rotVec.y, -rotVec.z);
+
       p.push();
          let pos = p.createVector(10, 0, 0);
-         rotateVector(pos, rotVec);
+         rotation.rotate(pos);
          pos.add(p.createVector(0, 0, -30));
          p.translate(pos);
          p.box(10, 10, 10);

@@ -1,3 +1,93 @@
+class Quaternion {
+
+    // https://api.flutter.dev/flutter/vector_math/Quaternion-class.html
+
+    x;
+    y;
+    z;
+    w;
+
+    constructor(x, y, z, w) {
+        if (w === undefined) {
+            this.setEuler(x, y, z);
+        } else {
+            this.x = x;
+            this.y = y;
+            this.z = z;
+            this.w = w;
+        }
+    }
+
+    add(other) {
+        this.x += other.x;
+        this.y += other.y;
+        this.z += other.z;
+        this.w += other.w;
+    }
+
+    copy() {
+        return new Quaternion(this.x, this.y, this.z, this.w);
+    }
+
+    length() {
+        return Math.sqrt(this.lengthSq())
+    }
+
+    lengthSq() {
+        return this.x * this.x + this.y * this.y + this.z * this.z + this.w * this.w;
+    }
+
+    normalize() {
+        let l = this.length();
+        if (l == 0.0) return;
+        
+        let d = 1.0 / l;
+        this.x *= l;
+        this.y *= l;
+        this.z *= l;
+        this.w *= l;
+    }
+
+    rotate(v) {
+        // god help me
+
+        // conjugate(this) * [v,0] * this
+        
+        let tiw = this.w;
+        let tiz = -this.z;
+        let tiy = -this.y;
+        let tix = -this.x;
+        
+        let tx = tiw * v.x + tix * 0.0 + tiy * v.z - tiz * v.y;
+        let ty = tiw * v.y + tiy * 0.0 + tiz * v.x - tix * v.z;
+        let tz = tiw * v.z + tiz * 0.0 + tix * v.y - tiy * v.x;
+        let tw = tiw * 0.0 - tix * v.x - tiy * v.y - tiz * v.z;
+        
+        v.x = tw * this.x + tx * this.w + ty * this.z - tz * this.y;
+        v.y = tw * this.y + ty * this.w + tz * this.x - tx * this.z;
+        v.z = tw * this.z + tz * this.w + tx * this.y - ty * this.x;
+    }
+
+    setEuler(yaw, pitch, roll) {
+        let halfYaw = yaw * 0.5;
+        let halfPitch = pitch * 0.5;
+        let halfRoll = roll * 0.5;
+
+        let cosYaw = Math.cos(halfYaw);
+        let sinYaw = Math.sin(halfYaw);
+        let cosPitch = Math.cos(halfPitch);
+        let sinPitch = Math.sin(halfPitch);
+        let cosRoll = Math.cos(halfRoll);
+        let sinRoll = Math.sin(halfRoll);
+
+        this.x = cosRoll * sinPitch * cosYaw + sinRoll * cosPitch * sinYaw;
+        this.y = cosRoll * cosPitch * sinYaw - sinRoll * sinPitch * cosYaw;
+        this.z = sinRoll * cosPitch * cosYaw - cosRoll * sinPitch * sinYaw;
+        this.w = cosRoll * cosPitch * cosYaw + sinRoll * sinPitch * sinYaw;
+    }
+
+}
+
 class P5Object {
 
     name;
