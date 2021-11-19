@@ -133,13 +133,15 @@ class P5Mesh extends P5Object {
     scale;
     color;
     children;
+    outline;
 
-    constructor(name, location, rotation, scale, color) {
+    constructor(name, location, rotation, scale, color, outline) {
         super(name, location);
         this.rotation = rotation;
         this.scale = scale;
         this.color = color;
         this.children = [];
+        if (outline) this.outline = outline; else this.outline = 0;
     }
 
     addChild(obj) {
@@ -154,6 +156,7 @@ class P5Mesh extends P5Object {
             instance.rotateY(this.rotation.y);
             instance.rotateX(this.rotation.x);
             instance.fill(this.color);
+            instance.strokeWeight(this.outline);
             this.drawMesh(instance);
             this.children.forEach(c => c.addToScene(instance));
         instance.pop();
@@ -167,8 +170,8 @@ class P5Box extends P5Mesh {
 
     dimensions;
 
-    constructor(name, location, rotation, scale, color, dimensions) {
-        super(name, location, rotation, scale, color);
+    constructor(name, location, rotation, scale, color, dimensions, outline) {
+        super(name, location, rotation, scale, color, outline);
         this.dimensions = dimensions;
     }
 
@@ -180,8 +183,8 @@ class P5Plane extends P5Mesh {
 
     dimensions;
 
-    constructor(name, location, rotation, scale, color, dimensions) {
-        super(name, location, rotation, scale, color);
+    constructor(name, location, rotation, scale, color, dimensions, outline) {
+        super(name, location, rotation, scale, color, outline);
         this.dimensions = dimensions;
     }
 
@@ -195,8 +198,8 @@ class P5Sphere extends P5Mesh {
     detailX;
     detailY;
 
-    constructor(name, location, rotation, scale, color, radius) {
-        super(name, location, rotation, scale, color);
+    constructor(name, location, rotation, scale, color, radius, outline) {
+        super(name, location, rotation, scale, color, outline);
         this.radius = radius;
         this.detailX = this.detailY = 16;
     }
@@ -212,8 +215,8 @@ class P5Cylinder extends P5Mesh {
     radius;
     height;
 
-    constructor(name, location, rotation, scale, color, radius, height) {
-        super(name, location, rotation, scale, color);
+    constructor(name, location, rotation, scale, color, radius, height, outline) {
+        super(name, location, rotation, scale, color, outline);
         this.radius = radius;
         this.height = height;
     }
@@ -227,8 +230,8 @@ class P5Cone extends P5Mesh {
     radius;
     height;
 
-    constructor(name, location, rotation, scale, color, radius, height) {
-        super(name, location, rotation, scale, color);
+    constructor(name, location, rotation, scale, color, radius, height, outline) {
+        super(name, location, rotation, scale, color, outline);
         this.radius = radius;
         this.height = height;
     }
@@ -240,8 +243,8 @@ class P5Cone extends P5Mesh {
 class P5Ellipsoid extends P5Mesh {
     radii;
 
-    constructor(name, location, rotation, scale, color, radii) {
-        super(name, location, rotation, scale, color);
+    constructor(name, location, rotation, scale, color, radii, outline) {
+        super(name, location, rotation, scale, color, outline);
         this.radii = radii;
     }
 
@@ -254,8 +257,8 @@ class P5Torus extends P5Mesh {
     radius;
     tubeRadius;
 
-    constructor(name, location, rotation, scale, color, radius, tubeRadius) {
-        super(name, location, rotation, scale, color);
+    constructor(name, location, rotation, scale, color, radius, tubeRadius, outline) {
+        super(name, location, rotation, scale, color, outline);
         this.radius = radius;
         this.tubeRadius = tubeRadius;
     }
