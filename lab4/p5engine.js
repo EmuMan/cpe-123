@@ -132,12 +132,18 @@ class P5Mesh extends P5Object {
     rotation;
     scale;
     color;
+    children;
 
     constructor(name, location, rotation, scale, color) {
         super(name, location);
         this.rotation = rotation;
         this.scale = scale;
         this.color = color;
+        this.children = [];
+    }
+
+    addChild(obj) {
+        this.children.push(obj);
     }
 
     addToScene(instance) {
@@ -149,6 +155,7 @@ class P5Mesh extends P5Object {
             instance.rotateX(this.rotation.x);
             instance.fill(this.color);
             this.drawMesh(instance);
+            this.children.forEach(c => c.addToScene(instance));
         instance.pop();
     }
 
@@ -260,30 +267,33 @@ class P5Torus extends P5Mesh {
 // a2v = array to vector
 function a2v(a) {
     if (a.length == 2) {
-        return createVector(a[0], a[1]);
+        return new p5.Vector(a[0], a[1]);
     } else {
-        return createVector(a[0], a[1], a[2]);
+        return new p5.Vector(a[0], a[1], a[2]);
     }
 }
 
-function loadObject(data) {
+function loadObject(data, instance, color) {
+    if (instance && !color && data['type'] != 'camera') {
+        color = instance.color(data['color']);
+    }
     switch(data['type']) {
         case 'camera':
             return new P5Camera(data['name'], a2v(data['location']), a2v(data['up']), a2v(data['target']))
         case 'box':
-            return new P5Box(data['name'], a2v(data['location']), a2v(data['rotation']), a2v(data['scale']), color(data['color']), a2v(data['dimensions']));
+            return new P5Box(data['name'], a2v(data['location']), a2v(data['rotation']), a2v(data['scale']), color, a2v(data['dimensions']));
         case 'plane':
-            return new P5Plane(data['name'], a2v(data['location']), a2v(data['rotation']), a2v(data['scale']), color(data['color']), a2v(data['dimensions']));
+            return new P5Plane(data['name'], a2v(data['location']), a2v(data['rotation']), a2v(data['scale']), color, a2v(data['dimensions']));
         case 'sphere':
-            return new P5Sphere(data['name'], a2v(data['location']), a2v(data['rotation']), a2v(data['scale']), color(data['color']), data['dimensions'][0]);
+            return new P5Sphere(data['name'], a2v(data['location']), a2v(data['rotation']), a2v(data['scale']), color, data['dimensions'][0]);
         case 'cylinder':
-            return new P5Cylinder(data['name'], a2v(data['location']), a2v(data['rotation']), a2v(data['scale']), color(data['color']), data['dimensions'][0], data['dimensions'][1]);
+            return new P5Cylinder(data['name'], a2v(data['location']), a2v(data['rotation']), a2v(data['scale']), color, data['dimensions'][0], data['dimensions'][1]);
         case 'cone':
-            return new P5Cone(data['name'], a2v(data['location']), a2v(data['rotation']), a2v(data['scale']), color(data['color']), data['dimensions'][0], data['dimensions'][1]);
+            return new P5Cone(data['name'], a2v(data['location']), a2v(data['rotation']), a2v(data['scale']), color, data['dimensions'][0], data['dimensions'][1]);
         case 'ellipsoid':
-            return new P5Ellipsoid(data['name'], a2v(data['location']), a2v(data['rotation']), a2v(data['scale']), color(data['color']), a2v(data['dimensions']));
+            return new P5Ellipsoid(data['name'], a2v(data['location']), a2v(data['rotation']), a2v(data['scale']), color, a2v(data['dimensions']));
         case 'torus':
-            return new P5Torus(data['name'], a2v(data['location']), a2v(data['rotation']), a2v(data['scale']), color(data['color']), data['dimensions'][0], data['dimensions'][1]);
+            return new P5Torus(data['name'], a2v(data['location']), a2v(data['rotation']), a2v(data['scale']), color, data['dimensions'][0], data['dimensions'][1]);
     }
     return null;
 }
