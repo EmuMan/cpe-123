@@ -190,7 +190,7 @@ class JSONExport(Operator):
                     elif obj_type == 'ellipsoid':
                         obj['dimensions'] = [object.dimensions.x / 2, object.dimensions.y / 2, object.dimensions.z / 2]
                     elif obj_type == 'torus':
-                        obj['dimensions'] = [object.dimensions.x - object.dimensions.z, object.dimensions.z / 2]
+                        obj['dimensions'] = [(object.dimensions.x - object.dimensions.z) / 2, object.dimensions.z / 2]
                 elif name_components[0] == 'light':
                     obj['type'] = 'light'
                     obj['name'] = object.name
