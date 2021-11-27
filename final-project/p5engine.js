@@ -393,22 +393,22 @@ class BoxTrigger extends Trigger {
 
 class CollisionResolution {
 
-    dynamic;
-    static;
+    dCollider;
+    sCollider;
     deltaTime; // used to scale velocity to dT
     time; // used to determine where on the scaled velocity the collision hit
     normal;
 
-    constructor(dynamic, static, deltaTime, time, normal) {
-        this.dynamic = dynamic;
-        this.static = static;
+    constructor(dCollider, sCollider, deltaTime, time, normal) {
+        this.dCollider = dCollider;
+        this.sCollider = sCollider;
         this.deltaTime = deltaTime;
         this.time = time;
         this.normal = normal;
     }
 
     resolve() {
-        let scaledVel = this.dynamic.velocity.copy();
+        let scaledVel = this.dCollider.velocity.copy();
         scaledVel.mult(this.deltaTime);
 
         // r = resolution
@@ -416,7 +416,7 @@ class CollisionResolution {
         let rVec = this.normal.copy();
         rVec.mult(rMag);
 
-        this.dynamic.location.sub(rVec);
+        this.dCollider.location.sub(rVec);
     }
 
 }
