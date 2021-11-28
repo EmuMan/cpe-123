@@ -74,7 +74,7 @@ class Tree extends P5Mesh {
             rotations.push(i != 1 ? Math.random() * rotationFactor * 2 - rotationFactor : 0);
          }
          let rotation = new p5.Vector(rotations[0], rotations[1], rotations[2]);
-         let length = currentBranch.length * Math.random() * 0.2 + 0.7;
+         let length = currentBranch.length * (Math.random() * 0.2 + 0.7);
          let newBranch = new Branch(length, currentBranch.radius * 0.8, rotation);
          currentBranch.addChild(newBranch);
          this._branchRecursive(depth + 1, newBranch);
@@ -122,7 +122,6 @@ let sketch = function(p) {
 
       ground.addToScene(p);
 
-      tree.update();
       tree.addToScene(p);
    };
 

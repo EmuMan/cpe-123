@@ -301,6 +301,23 @@ function loadObject(data, instance, color) {
     return null;
 }
 
+function rotateVector(v, r) {
+    // because apparently p5 doesn't natively provide this functionality for 3d vectors...
+    // luckily, we can use a short - albeit fairly inefficient - trick to extend the 2d rotation into a 3rd dimension,
+    // by simply performing it for every axis required (in xyz format) (trust me it works, i think)
+    let tempR;
+    tempR = new p5.Vector(v.x, v.y);
+    tempR.rotate(r.z);
+    v.y = tempR.y;
+    tempR.y = v.z;
+    tempR.rotate(-r.y);
+    v.x = tempR.x;
+    tempR.x = v.y;
+    tempR.rotate(r.x);
+    v.y = tempR.x;
+    v.z = tempR.y;
+ }
+
 
 class Ray {
 
@@ -385,8 +402,12 @@ class BoxTrigger extends Trigger {
                point.z < this.location.x + this.dimensions.z / 2
     }
 
-    testRay(point) {
+    testRay(ray) {
         // TODO: Implement
+    }
+
+    copy() {
+        return new BoxTrigger(this.name + "_copy", this.location, this.dimensions);
     }
 
 }
@@ -435,7 +456,17 @@ class DynamicCollider extends BoxTrigger {
     testCollision(other, deltaTime) {
         let _velocity = this.velocity.copy();
         _velocity.mult(deltaTime);
-        // TODO: Implement, will return a CollisionResult
+        
+        let _scaled = other.copy();
+        _scaled.dimensions.x += this.dimensions.x;
+        _scaled.dimensions.y += this.dimensions.y;
+        _scaled.dimensions.z += this.dimensions.z;
+
+        let rayHit = other.testRay(new Ray(this.location, _velocity));
+        if (rayHit) {
+            return new CollisionResolution(this, other, deltaTime, rayHit.time, rayHit.normal);
+        }
+        return null;
     }
 
     addForce(force) {
