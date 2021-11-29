@@ -1,3 +1,9 @@
+const normals = [
+    new p5.Vector(1, 0, 0),
+    new p5.Vector(0, 1, 0),
+    new p5.Vector(0, 0, 1)
+]
+
 class Quaternion {
 
     // https://api.flutter.dev/flutter/vector_math/Quaternion-class.html
@@ -267,6 +273,14 @@ class P5Torus extends P5Mesh {
 
 }
 
+class P5Empty extends P5Mesh {
+
+    constructor(name, location, rotation, scale, color, outline) {
+        super(name, location, rotation, scale, color, outline);
+    }
+
+}
+
 // a2v = array to vector
 function a2v(a) {
     if (a.length == 2) {
@@ -297,6 +311,8 @@ function loadObject(data, instance, color) {
             return new P5Ellipsoid(data['name'], a2v(data['location']), a2v(data['rotation']), a2v(data['scale']), color, a2v(data['dimensions']));
         case 'torus':
             return new P5Torus(data['name'], a2v(data['location']), a2v(data['rotation']), a2v(data['scale']), color, data['dimensions'][0], data['dimensions'][1]);
+        case 'empty':
+            return new P5Empty(data['name'], a2v(data['location']), a2v(data['rotation']), a2v(data['scale']), color)
     }
     return null;
 }
@@ -316,7 +332,28 @@ function rotateVector(v, r) {
     tempR.rotate(r.x);
     v.y = tempR.x;
     v.z = tempR.y;
- }
+    return v;
+}
+
+function getXZ(v) {
+    return new p5.Vector(v.x, 0, v.z);
+}
+
+function smallestIndex(a) {
+    let si = 0;
+    for (let i = 0; i < a.length; i++) {
+    if (a[i] < a[si]) si = i;
+    }
+    return si;
+}
+
+function largestIndex(a) {
+    let li = 0;
+    for (let i = 0; i < a.length; i++) {
+    if (a[i] > a[li]) li = i;
+    }
+    return li;
+}
 
 
 class Ray {
@@ -345,14 +382,10 @@ class RayHit {
 
 }
 
-class Trigger {
-
-    name;
-    location;
+class Trigger extends P5Object{
 
     constructor(name, location) {
-        this.name = name;
-        this.location = location;
+        super(name, location);
     }
 
     testPoint(point) { }
@@ -403,11 +436,52 @@ class BoxTrigger extends Trigger {
     }
 
     testRay(ray) {
-        // TODO: Implement
+        let halfSize = this.dimensions.copy();
+        halfSize.mult(0.5);
+
+        let nt = [];
+        let ft = [];
+
+        nt.push((this.location.x - halfSize.x - ray.origin.x) / ray.direction.x);
+        ft.push((this.location.x + halfSize.x - ray.origin.x) / ray.direction.x);
+        nt.push((this.location.y - halfSize.y - ray.origin.y) / ray.direction.y);
+        ft.push((this.location.y + halfSize.y - ray.origin.y) / ray.direction.y);
+        nt.push((this.location.z - halfSize.z - ray.origin.z) / ray.direction.z);
+        ft.push((this.location.z + halfSize.z - ray.origin.z) / ray.direction.z);
+
+        let temp;
+        for (let i = 0; i < 3; i++) {
+            if (ft[i] < nt[i]) {
+                temp = nt[i];
+                nt[i] = ft[i];
+                ft[i] = temp;
+            }
+        }
+
+        let condition = true;
+        for (let i = 0; i < 3 && condition; i++) {
+            for (let o = 0; o < 3; o++) {
+                if (i != o && nt[i] > ft[o]) {
+                    condition = false;
+                    break;
+                }
+            }
+        }
+
+        if (condition) {
+            let firstAxis = largestIndex(nt);
+            let lastAxis = smallestIndex(ft);
+            if (ft[lastAxis] < 0 || nt[firstAxis] < 0) return null;
+            let normal = normals[firstAxis];
+            if (ray.direction.dot(normal) < 0) normal.mult(-1);
+            return new RayHit(ray, nt[firstAxis], normals[firstAxis]); 
+        }
+        
+        return null;
     }
 
     copy() {
-        return new BoxTrigger(this.name + "_copy", this.location, this.dimensions);
+        return new BoxTrigger(this.name + "_copy", this.location.copy(), this.dimensions.copy());
     }
 
 }
@@ -429,15 +503,23 @@ class CollisionResolution {
     }
 
     resolve() {
-        let scaledVel = this.dCollider.velocity.copy();
-        scaledVel.mult(this.deltaTime);
-
         // r = resolution
-        let rMag = scaledVel.dot(this.normal) * (1 - this.time);
+        let rMag = this.dCollider.velocity.dot(this.normal) * (1 - this.time);
         let rVec = this.normal.copy();
         rVec.mult(rMag);
 
-        this.dCollider.location.sub(rVec);
+        this.dCollider.velocity.sub(rVec);
+    }
+
+}
+
+class StaticCollider extends BoxTrigger {
+
+    friction;
+
+    constructor(name, location, dimensions, friction) {
+        super(name, location, dimensions);
+        this.friction = friction;
     }
 
 }
@@ -446,11 +528,15 @@ class DynamicCollider extends BoxTrigger {
 
     velocity;
     forces;
+    children;
+    collisions;
 
     constructor(name, location, dimensions) {
         super(name, location, dimensions);
-        this.velocity = 0;
+        this.velocity = new p5.Vector();
         this.forces = [];
+        this.children = [];
+        this.collisions = [];
     }
 
     testCollision(other, deltaTime) {
@@ -462,11 +548,17 @@ class DynamicCollider extends BoxTrigger {
         _scaled.dimensions.y += this.dimensions.y;
         _scaled.dimensions.z += this.dimensions.z;
 
-        let rayHit = other.testRay(new Ray(this.location, _velocity));
-        if (rayHit) {
-            return new CollisionResolution(this, other, deltaTime, rayHit.time, rayHit.normal);
+        let rayHit = _scaled.testRay(new Ray(this.location, _velocity));
+        if (rayHit && rayHit.time < 1) {
+            let res = new CollisionResolution(this, other, deltaTime, rayHit.time, rayHit.normal);
+            this.collisions.push(res);
+            return res;
         }
         return null;
+    }
+    
+    addChild(child) {
+        this.children.push(child);
     }
 
     addForce(force) {
@@ -474,11 +566,70 @@ class DynamicCollider extends BoxTrigger {
     }
 
     applyForces(deltaTime) {
-        this.forces.forEach(f => {
-            _force = f.copy();
-            _force.mult(deltaTime);
-            this.velocity.add(_force);
+        let _force = this.getTotalForce();
+        _force.mult(deltaTime);
+        this.velocity.add(_force);
+    }
+
+    addToScene(instance) {
+        instance.push();
+            instance.translate(this.location);
+            this.children.forEach(c => c.addToScene(instance));
+        instance.pop();
+    }
+
+    getTotalForce() {
+        let total = new p5.Vector();
+        this.forces.forEach(f => total.add(f));
+        return total;
+    }
+
+    applyFriction(deltaTime) {
+        let forceSum = this.getTotalForce();
+        // nf = normal force
+        this.collisions.forEach(c => {
+            if (!c.normal.equals(new p5.Vector(0, -1, 0))) return;
+            let nfMag = forceSum.dot(c.normal);
+            if (nfMag < 0) return;
+            let friction = this.velocity.copy();
+            friction.mult(1 / (nfMag * c.sCollider.friction + 1) - 1);
+            friction.mult(1 / deltaTime); // this is either correct or dreadfully wrong and i'm too scared to figure out which
+            this.addForce(friction);
         });
+    }
+
+}
+
+class PlayerCamera extends P5Camera {
+
+    parent;
+
+    pitch;
+    yaw;
+
+    constructor(name, location, pitch, yaw) {
+        super(name, location, new p5.Vector(0, -1, 0), new p5.Vector(0, 0, -1));
+        this.pitch = pitch;
+        this.yaw = yaw;
+    }
+
+    addToScene(instance) {
+        this.update();
+        super.addToScene(instance);
+    }
+
+    setParent(parent) {
+        this.parent = parent;
+    }
+
+    update() {
+        this.location = this.parent.location; // probably only need to do this once? idk how references work here
+        this.target = new p5.Vector(0, 0, -1);
+        // janky but yaw needs to be applied before pitch.
+        // considering changing the engine to work in yxz or something?
+        rotateVector(this.target, new p5.Vector(this.yaw, 0, 0));
+        rotateVector(this.target, new p5.Vector(0, this.pitch, 0));
+        this.target.add(this.location);
     }
 
 }
@@ -502,19 +653,25 @@ class Physics {
     update(deltaTime) {
         this.dynamicColliders.forEach(dc => {
             dc.addForce(this.gravity);
-            dc.applyForces();
+            dc.applyFriction(deltaTime);
+            dc.applyForces(deltaTime);
 
-            let collisions = [];
+            dc.collisions.splice(0, dc.collisions.length);
+
             this.staticColliders.forEach(sc => {
-                collisions.push(dc.testCollision(sc, deltaTime));
+                dc.testCollision(sc, deltaTime);
             });
-            collisions.sort((a, b) => a.time - b.time);
+            dc.collisions.sort((a, b) => a.time - b.time);
 
-            dc.location.add(dc.velocity);
-
-            collisions.forEach(col => {
-                col.resolve();
+            dc.collisions.forEach(col => {
+                if (col) col.resolve();
             });
+
+            let _velocity = dc.velocity.copy();
+            _velocity.mult(deltaTime);
+            dc.location.add(_velocity);
+            
+            dc.forces.splice(0, dc.forces.length);
         });
     }
 
@@ -528,6 +685,36 @@ class Physics {
 
     addDynamicCollider(collider) {
         this.dynamicColliders.push(collider);
+    }
+
+}
+
+class Scene {
+
+    instance;
+    name;
+    time;
+    ready;
+
+    load;
+    draw;
+
+    constructor(name, setup) {
+        this.name = name;
+        this.time = 0;
+        this.ready = false;
+
+        setup(this);
+    }
+
+    _load(instance, canvas) {
+        this.instance = instance;
+        if (this.load) this.load(instance, canvas);
+    }
+
+    _draw() {
+        this.time += this.instance.deltaTime;
+        if (this.draw && this.ready) this.draw();
     }
 
 }

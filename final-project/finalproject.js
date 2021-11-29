@@ -1,8 +1,8 @@
-// Starting code for Lab 4 - Generative Art
-// This should be your organic sketch
+const maxMovementSpeed = 80;
+const movementAccel = 350;
 
-let cameraDistance = 100;
-let cameraSpeed = 1 / 360;
+const cameraSensitivity = 0.001;
+const cameraYawThreshold = 0.1;
 
 class Branch {
 
@@ -87,42 +87,21 @@ class Tree extends P5Mesh {
 
 let sketch = function(p) {
 
-   let ground;
-   let tree;
+   let canvas;
 
    p.setup = function() {
-      let cameraPos = p.createVector(0, 0, cameraDistance);
-      let cameraUp = p.createVector(0, -1, 0);
-      let cameraFacing = p.createVector(0, 0, 0);
-      sceneCamera = new P5Camera('main_camera', cameraPos, cameraUp, cameraFacing);
-
-      ground = new P5Sphere('ground', p.createVector(0, -130, 0), p.createVector(0, 0, 0), p.createVector(1, 1, 1), p.color(40, 181, 70), 100);
-      ground.setDetail(64);
-
-      let treePos = p.createVector(0, -30, 0);
-      tree = new Tree('tree', treePos, p.createVector(0, 0, 0), p.createVector(1, 1, 1), p.color(100, 60, 20));
-      tree.generateBranches(0, tree.trunk);
-
       p.pixelDensity(1);
-      p.createCanvas(400, 400, p.WEBGL);
+      canvas = p.createCanvas(800, 450, p.WEBGL);
       p.noStroke();
+
+      let eyeZ = ((p.height / 2) / p.tan(p.PI / 6));
+      p.perspective(p.PI / 3, p.width / p.height, eyeZ / 400, eyeZ * 10);
+
+      openingScene._load(p, canvas);
    };
    
    p.draw = function() {
-      let cameraPos = p.createVector(0, 0, cameraDistance);
-      rotateVector(cameraPos, p.createVector(0, -p.frameCount * cameraSpeed, 0));
-      sceneCamera.location = cameraPos;
-
-      p.ambientLight(165, 165, 165);
-      p.directionalLight(p.color(255, 255, 255), p.createVector(1, 0, -1))
-
-      sceneCamera.addToScene(p);
-
-      p.background(44, 184, 216);
-
-      ground.addToScene(p);
-
-      tree.addToScene(p);
+      openingScene._draw();
    };
 
 };
