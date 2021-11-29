@@ -6,11 +6,14 @@ const openingScene = new Scene('opening', function(scene) {
     let camera;
     let character;
 
-    let terrain;
+    let objects;
     let trees;
     let markers;
+    let colliders;
 
     let physics;
+
+    let doorOpening;
 
     function lockPointer() {
         c.elt.requestPointerLock();
@@ -61,6 +64,19 @@ const openingScene = new Scene('opening', function(scene) {
         if (p.keyIsDown(27)) unlockPointer(); // esc
     }
 
+    function processMousePress() {
+        let ray = new Ray(camera.location, camera.getForwardVector());
+        colliders.forEach(c => {
+            if (c.name === 'door_col') {
+                let hit = c.testRay(ray);
+                if (hit && hit.time < 20) {
+                    doorOpening = true;
+                    physics.removeStaticCollider(c);
+                }
+            }
+        });
+    }
+
     scene.load = function(instance, canvas) {
         c = canvas;
         p = instance;
@@ -68,27 +84,44 @@ const openingScene = new Scene('opening', function(scene) {
         camera = new PlayerCamera('camera', p.createVector(0, 10, 0), 0, 0);
         physics = new Physics(p.createVector(0, -100, 0));
         pointerSetup();
+        c.mousePressed(processMousePress);
 
-        terrain = [];
-        markers = [];
+        objects = [];
         trees = [];
+        markers = [];
+        colliders = [];
 
         let data = p.loadJSON('./opening_scene.json', function () {
-            data['terrain'].forEach(o => terrain.push(loadObject(o, p)));
+            data['terrain'].forEach(o => objects.push(loadObject(o, p)));
+            data['house'].forEach(o => objects.push(loadObject(o, p)));
             data['trees'].forEach(o => trees.push(loadObject(o, p)));
             data['markers'].forEach(o => markers.push(loadObject(o, p)));
+            data['colliders'].forEach(o => colliders.push(loadObject(o, p)));
 
-            terrain.forEach(t => {
-                if (t instanceof P5Box) {
-                    physics.addStaticCollider(new StaticCollider(t.name, t.location, t.dimensions, 0.0015));
+            for (let i = 0; i < trees.length; i++) {
+                let tree = new Tree(trees[i].name, trees[i].location, p.createVector(), trees[i].scale, p.color(30, 20, 10));
+                tree.generateBranches();
+                trees[i] = tree;
+                
+                let colliderLoc = trees[i].location.copy();
+                colliderLoc.y += trees[i].trunk.length / 2;
+                physics.addStaticCollider(new StaticCollider(trees[i].name, colliderLoc,
+                                                             p.createVector(trees[i].trunk.radius, trees[i].trunk.length, trees[i].trunk.radius)));
+            }
+
+            objects.forEach(o => {
+                if (o.name === 'door' || o.name === 'door_handle') {
+                    o.rotation.x += p.PI / 2;
+                    markers.forEach(c => {
+                        if (c.name === 'door_hinge') {
+                            c.addChild(o, true);
+                        }
+                    });
+                    console.log(o.name, o.location);
                 }
             });
 
-            for (let i = 0; i < trees.length; i++) {
-                let tree = new Tree(trees[i].name, trees[i].location, p.createVector(), trees[i].scale, p.color(100, 60, 20));
-                tree.generateBranches();
-                trees[i] = tree;
-            }
+            objects = objects.filter(o => o.name !== 'door' && o.name !== 'door_handle');
 
             markers.forEach(m => {
                 if (m.name === 'spawn') {
@@ -99,6 +132,11 @@ const openingScene = new Scene('opening', function(scene) {
                     physics.addDynamicCollider(character);
                 }
             });
+
+            for (let i = 0; i < colliders.length; i++) {
+                colliders[i] = new StaticCollider(colliders[i].name, colliders[i].location, colliders[i].dimensions, 0.0015);
+                physics.addStaticCollider(colliders[i]);
+            }
 
             scene.ready = true;
         });
@@ -115,14 +153,26 @@ const openingScene = new Scene('opening', function(scene) {
             character.velocity = p.createVector(cvxz.x, character.velocity.y, cvxz.z);
         }
 
-        p.ambientLight(120, 120, 120);
-        p.directionalLight(p.color(175, 175, 175), p.createVector(1, -3, -2))
+        p.ambientLight(255, 255, 255);
+        p.directionalLight(p.color(255, 255, 255), p.createVector(1, -3, -2))
 
         p.background(20, 30, 40);
 
-        camera.addToScene(p);
+        if (doorOpening) {
+            markers.forEach(m => {
+                if (m.name === 'door_hinge') {
+                    m.rotation.y -= 3 * p.deltaTime / 1000;
+                    if (m.rotation.y < -p.PI / 2) {
+                        m.rotation.y = -p.PI / 2;
+                        doorOpening = false;
+                    }
+                }
+            });
+        }
 
-        terrain.forEach(t => t.addToScene(p));
+        camera.addToScene(p);
+        objects.forEach(t => t.addToScene(p));
+        markers.forEach(m => m.addToScene(p));
         trees.forEach(t => t.addToScene(p));
     }
 

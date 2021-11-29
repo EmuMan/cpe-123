@@ -150,7 +150,14 @@ class P5Mesh extends P5Object {
         if (outline) this.outline = outline; else this.outline = 0;
     }
 
-    addChild(obj) {
+    addChild(obj, fixTransform) {
+        if (fixTransform) {
+            // rotation will not be workable until i implement quaternions
+            obj.location.sub(this.location);
+            obj.scale.x /= this.scale.x;
+            obj.scale.y /= this.scale.y;
+            obj.scale.z /= this.scale.z;
+        }
         this.children.push(obj);
     }
 
@@ -624,12 +631,17 @@ class PlayerCamera extends P5Camera {
 
     update() {
         this.location = this.parent.location; // probably only need to do this once? idk how references work here
-        this.target = new p5.Vector(0, 0, -1);
+        this.target = this.getForwardVector();
+        this.target.add(this.location);
+    }
+
+    getForwardVector() {
+        let vec = new p5.Vector(0, 0, -1);
         // janky but yaw needs to be applied before pitch.
         // considering changing the engine to work in yxz or something?
-        rotateVector(this.target, new p5.Vector(this.yaw, 0, 0));
-        rotateVector(this.target, new p5.Vector(0, this.pitch, 0));
-        this.target.add(this.location);
+        rotateVector(vec, new p5.Vector(this.yaw, 0, 0));
+        rotateVector(vec, new p5.Vector(0, this.pitch, 0));
+        return vec;
     }
 
 }
@@ -681,6 +693,14 @@ class Physics {
 
     addStaticCollider(collider) {
         this.staticColliders.push(collider);
+    }
+
+    removeStaticCollider(collider) {
+        if (typeof collider === 'string' || collider instanceof String) {
+            this.staticColliders = this.staticColliders.filter(sc => sc.name !== collider);
+        } else {
+            this.staticColliders = this.staticColliders.filter(sc => sc !== collider);
+        }
     }
 
     addDynamicCollider(collider) {
