@@ -1,10 +1,11 @@
-const openingScene = new Scene('opening', function(scene) {
+const bossFight = new Scene('bossfight', function(scene) {
 
     let p;
     let c;
 
     let camera;
     let character;
+    let monster;
 
     let objects;
     let trees;
@@ -91,7 +92,7 @@ const openingScene = new Scene('opening', function(scene) {
         markers = [];
         colliders = [];
 
-        let data = p.loadJSON('./opening_scene.json', function () {
+        let data = p.loadJSON('./boss_fight.json', function () {
             data['terrain'].forEach(o => objects.push(loadObject(o, p)));
             data['house'].forEach(o => objects.push(loadObject(o, p)));
             data['trees'].forEach(o => trees.push(loadObject(o, p)));
@@ -111,7 +112,6 @@ const openingScene = new Scene('opening', function(scene) {
 
             objects.forEach(o => {
                 if (o.name === 'door' || o.name === 'door_handle') {
-                    o.rotation.x += p.PI / 2;
                     markers.forEach(c => {
                         if (c.name === 'door_hinge') {
                             c.addChild(o, true);
@@ -137,6 +137,8 @@ const openingScene = new Scene('opening', function(scene) {
                 colliders[i] = new StaticCollider(colliders[i].name, colliders[i].location, colliders[i].dimensions, 0.0015);
                 physics.addStaticCollider(colliders[i]);
             }
+
+            monster = new Monster('rawr', p.createVector(), p.createVector(), p.createVector(1, 1, 1), p.color(0));
 
             scene.ready = true;
         });
@@ -170,10 +172,14 @@ const openingScene = new Scene('opening', function(scene) {
             });
         }
 
+        monster.addParticle(p);
+        monster.update(p);
+
         camera.addToScene(p);
         objects.forEach(t => t.addToScene(p));
         markers.forEach(m => m.addToScene(p));
         trees.forEach(t => t.addToScene(p));
+        monster.addToScene(p);
     }
 
 });

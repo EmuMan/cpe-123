@@ -168,7 +168,7 @@ class P5Mesh extends P5Object {
             instance.rotateZ(this.rotation.z);
             instance.rotateY(this.rotation.y);
             instance.rotateX(this.rotation.x);
-            instance.fill(this.color);
+            if (this.color) instance.fill(this.color);
             instance.strokeWeight(this.outline);
             this.drawMesh(instance);
             this.children.forEach(c => c.addToScene(instance));
@@ -282,8 +282,8 @@ class P5Torus extends P5Mesh {
 
 class P5Empty extends P5Mesh {
 
-    constructor(name, location, rotation, scale, color, outline) {
-        super(name, location, rotation, scale, color, outline);
+    constructor(name, location, rotation, scale) {
+        super(name, location, rotation, scale, null, null);
     }
 
 }
@@ -319,7 +319,7 @@ function loadObject(data, instance, color) {
         case 'torus':
             return new P5Torus(data['name'], a2v(data['location']), a2v(data['rotation']), a2v(data['scale']), color, data['dimensions'][0], data['dimensions'][1]);
         case 'empty':
-            return new P5Empty(data['name'], a2v(data['location']), a2v(data['rotation']), a2v(data['scale']), color)
+            return new P5Empty(data['name'], a2v(data['location']), a2v(data['rotation']), a2v(data['scale']))
     }
     return null;
 }

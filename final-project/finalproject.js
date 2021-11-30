@@ -48,7 +48,7 @@ class Tree extends P5Mesh {
       super(name, location, rotation, scale, color);
       this.leaves = [];
       this.fallingLeaves = [];
-      this.trunk = new Branch(20, 2, new p5.Vector());
+      this.trunk = new Branch(30, 2, new p5.Vector());
    }
 
    drawMesh(instance) {
@@ -85,6 +85,95 @@ class Tree extends P5Mesh {
 
 }
 
+class MonsterParticle extends P5Sphere {
+
+   time;
+   velocity;
+   originalRadius;
+
+   constructor(name, location, scale, color, velocity) {
+      super(name, location, new p5.Vector(0, 0, 0), scale, color, Math.random() * 2 + 2);
+      this.setDetail(5);
+      this.time = 0;
+      this.velocity = velocity;
+      this.originalRadius = this.radius;
+   }
+
+   update(instance) {
+      const dt = instance.deltaTime / 1000;
+      const noiseScale = 20;
+      this.time += dt;
+      let acc = new p5.Vector(instance.noise(this.location.x * noiseScale) - 0.5,
+                              instance.noise(this.location.y * noiseScale) - 0.5,
+                              instance.noise(this.location.z * noiseScale) - 0.5);
+      acc.mult(dt * 1000);
+      this.velocity.add(acc);
+      let _velocity = this.velocity.copy();
+      _velocity.mult(dt);
+      this.location.add(_velocity);
+
+      this.radius = this.originalRadius * (1 - this.time);
+   }
+
+}
+
+class Monster extends P5Mesh {
+
+   health;
+   time;
+   particles;
+
+   constructor(name, location, rotation, scale, color) {
+      super(name, location, rotation, scale, color);
+      this.health = 100;
+      this.time = 0;
+      this.particles = [];
+   }
+
+   drawMesh(instance) {
+      this.particles.forEach(p => p.addToScene(instance));
+      instance.push();
+         instance.rotateX(this.time);
+         instance.rotateY(this.time);
+         instance.sphere(7, 5, 5);
+      instance.pop();
+   }
+
+   addParticle(instance) {
+      const v = p5.Vector.random3D();
+      v.mult(30);
+      this.particles.push(new MonsterParticle(`${this.name}_particle`, this.location.copy(),
+                                              this.scale.copy(), this.color, v));
+   }
+
+   update(instance) {
+      this.time += instance.deltaTime / 1000;
+      let toRemove = 0;
+      this.particles.forEach(p => {
+         if (p.time > 1) {
+            toRemove++;
+            return;
+         }
+         p.update(instance);
+      });
+      for (let i = 0; i < toRemove; i++) this.particles.shift();
+   }
+
+   damage(hp) {
+      this.health -= hp;
+      if (this.health <= 0) {
+         this.health = 0;
+         this.onDeath();
+      }
+      console.log(this.health);
+   }
+   
+   onDeath() {
+
+   }
+
+}
+
 let sketch = function(p) {
 
    let canvas;
@@ -97,11 +186,11 @@ let sketch = function(p) {
       let eyeZ = ((p.height / 2) / p.tan(p.PI / 6));
       p.perspective(p.PI / 3, p.width / p.height, eyeZ / 400, eyeZ * 10);
 
-      openingScene._load(p, canvas);
+      bossFight._load(p, canvas);
    };
    
    p.draw = function() {
-      openingScene._draw();
+      bossFight._draw();
    };
 
 };
