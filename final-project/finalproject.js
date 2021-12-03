@@ -188,7 +188,7 @@ let sketch = function(p) {
 
    p.setup = function() {
       p.pixelDensity(1);
-      canvas = p.createCanvas(800, 450, p.WEBGL);
+      canvas = p.createCanvas(600, 400, p.WEBGL);
       p.noStroke();
 
       let eyeZ = ((p.height / 2) / p.tan(p.PI / 6));
@@ -197,8 +197,9 @@ let sketch = function(p) {
       sm = new SceneManager(p, canvas);
 
       sm.add(bossFight);
+      sm.add(openingScene);
 
-      sm.load('boss_fight');
+      sm.load(openingScene);
    };
    
    p.draw = function() {

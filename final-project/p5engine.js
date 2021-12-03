@@ -147,24 +147,22 @@ class P5Mesh extends P5Object {
         this.scale = scale;
         this.color = color;
         this.children = [];
-        if (outline) this.outline = outline; else this.outline = 0;
+        this.outline = outline ?? 0;
     }
 
     addChild(obj, fixTransform) {
         if (fixTransform) {
             // rotation will not be workable until i implement quaternions
             obj.location.sub(this.location);
-            obj.scale.x /= this.scale.x;
-            obj.scale.y /= this.scale.y;
-            obj.scale.z /= this.scale.z;
+            obj.scale.div(this.scale);
         }
         this.children.push(obj);
     }
 
     addToScene(instance) {
         instance.push();
-            instance.translate(this.location.x, this.location.y, this.location.z);
-            instance.scale(this.scale.x, this.scale.y, this.scale.z);
+            instance.translate(this.location);
+            instance.scale(this.scale);
             instance.rotateZ(this.rotation.z);
             instance.rotateY(this.rotation.y);
             instance.rotateX(this.rotation.x);
@@ -285,6 +283,41 @@ class P5Empty extends P5Mesh {
     constructor(name, location, rotation, scale) {
         super(name, location, rotation, scale, null, null);
     }
+
+}
+
+class P5Mesh2D extends P5Mesh {
+
+    constructor(name, location, rotation, scale, color, outline) {
+        super(name, location, rotation, scale, color, outline);
+    }
+
+    addToScene(instance) {
+        instance.push();
+            instance.translate(this.location);
+            instance.scale(this.scale);
+            instance.rotate(this.rotation);
+            if (this.color) instance.fill(this.color);
+            instance.strokeWeight(this.outline);
+            this.drawMesh(instance);
+            this.children.forEach(c => c.addToScene(instance));
+        instance.pop();
+    }
+
+}
+
+class P5Ellipse2D extends P5Mesh2D {
+
+    width;
+    height;
+
+    constructor(name, location, rotation, scale, color, width, height, outline) {
+        super(name, location, rotation, scale, color, outline);
+        this.width = width;
+        this.height = height ?? width; // cool syntax B)
+    }
+
+    drawMesh(instance) { instance.ellipse(0, 0, this.width, this.height) }
 
 }
 
@@ -745,7 +778,7 @@ class Scene {
     }
 
     _draw() {
-        this.time += this.instance.deltaTime;
+        this.time += this.instance.deltaTime / 1000;
         if (this.draw && this.ready) this.draw();
     }
 
