@@ -1,4 +1,4 @@
-const bossFight = new Scene('bossfight', function(scene) {
+const bossFight = new Scene('boss_fight', function(scene) {
 
     let p;
     let c;
@@ -78,7 +78,7 @@ const bossFight = new Scene('bossfight', function(scene) {
         });
     }
 
-    scene.load = function(instance, canvas) {
+    scene.load = (instance, canvas) => {
         c = canvas;
         p = instance;
 
@@ -144,7 +144,18 @@ const bossFight = new Scene('bossfight', function(scene) {
         });
     };
 
-    scene.draw = function() {
+    scene.unload = function () {
+        p = null;
+        c = null;
+
+        camera = null;
+        character = null;
+        monster = null;
+
+        
+    }
+
+    scene.draw = function () {
         processInput();
 
         physics.update(p.deltaTime / 1000);

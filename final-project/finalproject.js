@@ -177,6 +177,7 @@ class Monster extends P5Mesh {
 let sketch = function(p) {
 
    let canvas;
+   let sm;
 
    p.setup = function() {
       p.pixelDensity(1);
@@ -186,11 +187,15 @@ let sketch = function(p) {
       let eyeZ = ((p.height / 2) / p.tan(p.PI / 6));
       p.perspective(p.PI / 3, p.width / p.height, eyeZ / 400, eyeZ * 10);
 
-      bossFight._load(p, canvas);
+      sm = new SceneManager(p, canvas);
+
+      sm.add(bossFight);
+
+      sm.load('boss_fight');
    };
    
    p.draw = function() {
-      bossFight._draw();
+      sm.drawActive();
    };
 
 };
