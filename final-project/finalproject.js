@@ -119,12 +119,19 @@ class MonsterParticle extends P5Sphere {
 
 class Monster extends P5Mesh {
 
+   collider;
+
+   state;
+
    health;
    time;
    particles;
 
    constructor(name, location, rotation, scale, color) {
       super(name, location, rotation, scale, color);
+
+      this.collider = new SphereTrigger('monster_collider', this.location, 10);
+
       this.health = 100;
       this.time = 0;
       this.particles = [];
@@ -139,7 +146,7 @@ class Monster extends P5Mesh {
       instance.pop();
    }
 
-   addParticle(instance) {
+   addParticle() {
       const v = p5.Vector.random3D();
       v.mult(30);
       this.particles.push(new MonsterParticle(`${this.name}_particle`, this.location.copy(),

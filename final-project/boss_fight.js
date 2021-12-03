@@ -67,6 +67,7 @@ const bossFight = new Scene('bossfight', function(scene) {
 
     function processMousePress() {
         let ray = new Ray(camera.location, camera.getForwardVector());
+
         colliders.forEach(c => {
             if (c.name === 'door_col') {
                 let hit = c.testRay(ray);
@@ -76,6 +77,9 @@ const bossFight = new Scene('bossfight', function(scene) {
                 }
             }
         });
+
+        let monsterHit = monster.collider.testRay(ray);
+        if (monsterHit && monsterHit.time < 30) monster.damage(1);
     }
 
     scene.load = function(instance, canvas) {
@@ -117,7 +121,6 @@ const bossFight = new Scene('bossfight', function(scene) {
                             c.addChild(o, true);
                         }
                     });
-                    console.log(o.name, o.location);
                 }
             });
 
@@ -172,7 +175,7 @@ const bossFight = new Scene('bossfight', function(scene) {
             });
         }
 
-        monster.addParticle(p);
+        monster.addParticle();
         monster.update(p);
 
         camera.addToScene(p);

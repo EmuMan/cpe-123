@@ -419,7 +419,23 @@ class SphereTrigger extends Trigger {
     }
 
     testRay(ray) {
-        // TODO: Implement
+        // https://fiftylinesofcode.com/ray-sphere-intersection/#:~:text=Ray-Sphere%20Intersection%20%E2%80%93%20From%20Math%20to%20Code%201,will%20be.%204%20Usage.%20...%205%20Assignments.%20
+        let sphereToRay = p5.Vector.sub(ray.origin, this.location);
+
+        let p = ray.direction.dot(sphereToRay);
+        let q = sphereToRay.dot(sphereToRay) - this.radius * this.radius;
+
+        let discriminant = (p * p) - q;
+        if (discriminant < 0) return null;
+
+        let dRoot = Math.sqrt(discriminant);
+        let closestTime = Math.min(-p - dRoot, -p + dRoot);
+        if (closestTime < 0) return null;
+        let normal = p5.Vector.add(ray.origin, p5.Vector.mult(ray.direction, closestTime));
+        normal.sub(this.location);
+        normal.normalize();
+
+        return new RayHit(ray, closestTime, normal);
     }
 
 }
@@ -512,8 +528,7 @@ class CollisionResolution {
     resolve() {
         // r = resolution
         let rMag = this.dCollider.velocity.dot(this.normal) * (1 - this.time);
-        let rVec = this.normal.copy();
-        rVec.mult(rMag);
+        let rVec = p5.Vector.mult(this.normal, rMag);
 
         this.dCollider.velocity.sub(rVec);
     }
@@ -546,16 +561,13 @@ class DynamicCollider extends BoxTrigger {
         this.collisions = [];
     }
 
-    testCollision(other, deltaTime) {
-        let _velocity = this.velocity.copy();
-        _velocity.mult(deltaTime);
-        
+    testCollision(other, deltaTime) {        
         let _scaled = other.copy();
         _scaled.dimensions.x += this.dimensions.x;
         _scaled.dimensions.y += this.dimensions.y;
         _scaled.dimensions.z += this.dimensions.z;
 
-        let rayHit = _scaled.testRay(new Ray(this.location, _velocity));
+        let rayHit = _scaled.testRay(new Ray(this.location, p5.Vector.mult(this.velocity, deltaTime)));
         if (rayHit && rayHit.time < 1) {
             let res = new CollisionResolution(this, other, deltaTime, rayHit.time, rayHit.normal);
             this.collisions.push(res);
@@ -573,9 +585,7 @@ class DynamicCollider extends BoxTrigger {
     }
 
     applyForces(deltaTime) {
-        let _force = this.getTotalForce();
-        _force.mult(deltaTime);
-        this.velocity.add(_force);
+        this.velocity.add(p5.Vector.mult(this.getTotalForce(), deltaTime));
     }
 
     addToScene(instance) {
@@ -598,8 +608,7 @@ class DynamicCollider extends BoxTrigger {
             if (!c.normal.equals(new p5.Vector(0, -1, 0))) return;
             let nfMag = forceSum.dot(c.normal);
             if (nfMag < 0) return;
-            let friction = this.velocity.copy();
-            friction.mult(1 / (nfMag * c.sCollider.friction + 1) - 1);
+            let friction = p5.Vector.mult(this.velocity, 1 / (nfMag * c.sCollider.friction + 1) - 1);
             friction.mult(1 / deltaTime); // this is either correct or dreadfully wrong and i'm too scared to figure out which
             this.addForce(friction);
         });
@@ -679,9 +688,7 @@ class Physics {
                 if (col) col.resolve();
             });
 
-            let _velocity = dc.velocity.copy();
-            _velocity.mult(deltaTime);
-            dc.location.add(_velocity);
+            dc.location.add(p5.Vector.mult(dc.velocity, deltaTime));
             
             dc.forces.splice(0, dc.forces.length);
         });
