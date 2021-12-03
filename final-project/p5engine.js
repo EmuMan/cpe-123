@@ -756,6 +756,8 @@ class Physics {
 class Scene {
 
     instance;
+    sceneManager;
+
     name;
     time;
     ready;
@@ -772,7 +774,8 @@ class Scene {
         setup(this);
     }
 
-    _load(instance, canvas) {
+    _load(sceneManager, instance, canvas) {
+        this.sceneManager = sceneManager;
         this.instance = instance;
         if (this.load) this.load(instance, canvas);
     }
@@ -818,7 +821,7 @@ class SceneManager {
             if ((s ? this.scenes[i].name : this.scenes[i]) === scene) {
                 if (this.activeScene) this.activeScene._unload();
                 this.activeScene = this.scenes[i];
-                this.activeScene._load(this.instance, this.canvas);
+                this.activeScene._load(this, this.instance, this.canvas);
                 break;
             }
         }

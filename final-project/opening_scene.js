@@ -1,14 +1,44 @@
 class Monster2D extends P5Mesh2D {
 
     time;
+    movementRadius;
+    movementSpeed;
 
     constructor(location, rotation, scale) {
         super('monster', location, rotation, scale, null, null);
         this.time = 0;
+        this.movementRadius = 40;
+        this.movementSpeed = 3;
     }
 
     drawMesh(instance) {
-
+        const theta = this.time * this.movementSpeed;
+        instance.translate(Math.cos(theta) * this.movementRadius,
+                           Math.sin(theta) * this.movementRadius);
+        
+        //body
+        instance.fill(50);
+        instance.beginShape();
+        instance.curveVertex(50, 175);
+        instance.curveVertex(50, 175);
+        instance.curveVertex(70, 140);
+        instance.curveVertex(100, 150);
+        instance.curveVertex(135, 140);
+        instance.curveVertex(120, 180);
+        instance.curveVertex(130, 200);
+        instance.curveVertex(125, 240);
+        instance.curveVertex(95, 225);
+        instance.curveVertex(75, 260);
+        instance.curveVertex(60, 235);
+        instance.curveVertex(25, 200);
+        instance.curveVertex(40, 215);
+        instance.curveVertex(10, 180);
+        instance.endShape(instance.CLOSE);
+        
+        //face	
+        instance.fill(255);
+        instance.ellipse(75, 160, 5, 15);
+        instance.ellipse(90, 160, 5, 15);
     }
 
     update(deltaTime) { this.time += deltaTime; }
@@ -17,11 +47,14 @@ class Monster2D extends P5Mesh2D {
 
 class Person2D extends P5Mesh2D {
 
+    surprised;
+
     leftEyeLoc;
     rightEyeLoc;
 
     constructor(location, rotation, scale) {
         super('Person2D', location, rotation, scale, null, null);
+        this.surprised = false;
     }
 
     drawMesh(instance) {
@@ -54,7 +87,8 @@ class Person2D extends P5Mesh2D {
 
         //mouth
         instance.fill(0);
-        instance.ellipse(300, 275, 10, 5);
+        if (this.surprised) instance.ellipse(300, 275, 10);
+        else instance.ellipse(300, 275, 10, 5);
 
         //pants
         instance.fill(0, 0, 100);
@@ -116,13 +150,15 @@ const states = {
     INITIAL: 'initial',
     MONSTER_MOVE: 'monster_move',
     WAIT_FOR_PLAYER_CLICK: 'wait_for_player_click',
-    PLAYER_MOVE: 'player_move'
+    PERSON_MOVE: 'person_move'
 }
 
 const openingScene = new Scene('opening_scene', function(scene) {
 
     let c;
     let p;
+
+    let font;
 
     let person;
     let monster;
@@ -135,19 +171,23 @@ const openingScene = new Scene('opening_scene', function(scene) {
     const treeCount = randomBetween(80, 150);
 
     function onMouseClick() {
-        if (state === states.INITIAL) {
-            
-        } else if (state === states.WAIT_FOR_PLAYER_CLICK) {
-
-        }
+        if (state === states.INITIAL && p.mouseX > 150 &&
+            p.mouseX < 450 && p.mouseY > 350)  state = states.MONSTER_MOVE;
+        else if (state === states.WAIT_FOR_PLAYER_CLICK &&
+                 p.mouseX > 275 && p.mouseX < 325 && p.mouseY > 240 && p.mouseY < 350)
+            state = states.PERSON_MOVE;
     }
 
     scene.load = (instance, canvas) => {
         c = canvas;
         p = instance;
 
-        person = new Person2D(p.createVector(), 0, p.createVector(1, 1));
-        monster = new Monster2D(p.createVector(), 0, p.createVector(1, 1));
+        state = states.INITIAL;
+
+        p.mousePressed = onMouseClick;
+
+        person = new Person2D(p.createVector(), 0, 1);
+        monster = new Monster2D(p.createVector(-130, 0), 0, 0.75);
 
         person.addChild(monster);
 
@@ -168,7 +208,7 @@ const openingScene = new Scene('opening_scene', function(scene) {
                                                  0, p.random(0.4, 0.8)));
         }
 
-        scene.ready = true;
+        font = p.loadFont('FreeSans.ttf', function () { scene.ready = true; })
     };
 
     scene.unload = function () {
@@ -182,17 +222,57 @@ const openingScene = new Scene('opening_scene', function(scene) {
     scene.draw = function () {
         convertScene(p);
 
+        monster.update(p.deltaTime / 1000);
+
+        if (state === states.MONSTER_MOVE) {
+            if (monster.location.x > 150) {
+                state = states.WAIT_FOR_PLAYER_CLICK;
+                person.surprised = true;
+                monster.location.x = 150;
+            } else {
+                monster.location.x += 300 * (p.deltaTime / 1000);
+            }
+        } else if (state === states.PERSON_MOVE) {
+            if (person.location.x > p.width) {
+                scene.sceneManager.load('boss_fight');
+                return;
+            }
+            person.location.x += 300 * (p.deltaTime / 1000);
+        }
+
         p.background(20);
 
         // ground
         p.fill(0, 100, 0)
         p.rect(0, 150, p.width, 250)
 
-        person.addToScene(p);
-        monster.addToScene(p);
-
         stars.forEach(s => s.addToScene(p));
         trees.forEach(t => t.addToScene(p));
+
+        person.addToScene(p);
+        
+        // text box
+        p.fill(0);
+        p.quad(0, 350, p.width, 350, p.width, p.height, 0, p.height);
+        p.fill(255);
+        p.noStroke();
+        p.quad(p.width / 4, 350, 3 * p.width / 4, 350, 3 * p.width / 4, p.height, p.width / 4, p.height);
+        // text
+        p.textFont(font);
+        p.fill(0);
+        switch (state) {
+            case states.INITIAL:
+            case states.MONSTER_MOVE:
+                p.textSize(60);
+                p.text("Start", 230, 397.5);
+                break;
+            case states.WAIT_FOR_PLAYER_CLICK:
+            case states.PERSON_MOVE:
+                p.textSize(10);
+                p.text("You are running through the woods being chased by a monster", 160, 365);
+                p.text("You need to find to a way to both escape and defeat them", 170, 380);
+                p.text("Click on the player to begin your journey", 210, 395);
+        }
     }
 
 });
