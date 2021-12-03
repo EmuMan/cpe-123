@@ -198,6 +198,7 @@ let sketch = function(p) {
 
       sm.add(bossFight);
       sm.add(openingScene);
+      sm.add(tilesScene);
 
       sm.load(openingScene);
    };

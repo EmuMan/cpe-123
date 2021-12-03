@@ -141,7 +141,6 @@ function convertScene(instance) {
     instance.translate(-instance.width / 2, -instance.height / 2, 0);
 }
 
-// can
 function randomBetween(a, b) {
     return Math.random() * (b - a) + a;
 }
@@ -208,7 +207,7 @@ const openingScene = new Scene('opening_scene', function(scene) {
                                                  0, p.random(0.4, 0.8)));
         }
 
-        font = p.loadFont('FreeSans.ttf', function () { scene.ready = true; })
+        font = p.loadFont('./scenes/assets/FreeSans.ttf', function () { scene.ready = true; });
     };
 
     scene.unload = function () {
@@ -234,7 +233,7 @@ const openingScene = new Scene('opening_scene', function(scene) {
             }
         } else if (state === states.PERSON_MOVE) {
             if (person.location.x > p.width) {
-                scene.sceneManager.load('boss_fight');
+                scene.sceneManager.load('tiles');
                 return;
             }
             person.location.x += 300 * (p.deltaTime / 1000);

@@ -96,7 +96,7 @@ const bossFight = new Scene('boss_fight', function(scene) {
         markers = [];
         colliders = [];
 
-        let data = p.loadJSON('./boss_fight.json', function () {
+        let data = p.loadJSON('./scenes/assets/boss_fight.json', function () {
             data['terrain'].forEach(o => objects.push(loadObject(o, p)));
             data['house'].forEach(o => objects.push(loadObject(o, p)));
             data['trees'].forEach(o => trees.push(loadObject(o, p)));
