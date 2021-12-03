@@ -362,6 +362,10 @@ function largestIndex(a) {
     return li;
 }
 
+function isString(v) {
+    return typeof v === 'string' || v instanceof String;
+}
+
 
 class Ray {
 
@@ -725,6 +729,7 @@ class Scene {
 
     load;
     draw;
+    unload;
 
     constructor(name, setup) {
         this.name = name;
@@ -742,6 +747,61 @@ class Scene {
     _draw() {
         this.time += this.instance.deltaTime;
         if (this.draw && this.ready) this.draw();
+    }
+
+    _unload() {
+        if (this.unload) this.unload();
+    }
+
+}
+
+class SceneManager {
+
+    instance;
+    canvas;
+
+    activeScene;
+    scenes;
+
+    constructor(instance, canvas) {
+        this.instance = instance;
+        this.canvas = canvas;
+
+        this.activeScene = null;
+        this.scenes = [];
+    }
+
+    add(scene) {
+        this.scenes.push(scene);
+    }
+
+    drawActive() {
+        if (this.activeScene) this.activeScene._draw();
+    }
+
+    load(scene) {
+        const s = isString(scene);
+        for (let i = 0; i < this.scenes.length; i++) {
+            if ((s ? this.scenes[i].name : this.scenes[i]) === scene) {
+                if (this.activeScene) this.activeScene._unload();
+                this.activeScene = this.scenes[i];
+                this.activeScene._load(this.instance, this.canvas);
+                break;
+            }
+        }
+    }
+
+    remove(scene) {
+        const s = isString(scene);
+        this.scenes = this.scenes.filter(sc => (s ? sc.name !== scene : sc !== scene));
+        if (s ? (this.activeScene.name === scene) : (this.activeScene === scene)) {
+            this.activeScene._unload();
+            if (this.scenes.length !== 0) {
+                this.activeScene = this.scenes[0];
+                return;
+            }
+            this.activeScene = null;
+        }
     }
 
 }
