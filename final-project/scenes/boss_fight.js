@@ -12,6 +12,8 @@ const bossFightScene = new Scene('boss_fight', function(scene) {
     let markers;
     let colliders;
 
+    let bat;
+
     let physics;
 
     let state;
@@ -139,12 +141,15 @@ const bossFightScene = new Scene('boss_fight', function(scene) {
                 }
             });
 
+            bat = new Bat('bat', p.createVector(0, 0, 30), p.createVector(), 1, p.color(255, 255, 255));
+            character.addChild(bat);
+
             for (let i = 0; i < colliders.length; i++) {
                 colliders[i] = new StaticCollider(colliders[i].name, colliders[i].location, colliders[i].dimensions, 0.0015);
                 physics.addStaticCollider(colliders[i]);
             }
 
-            monster = new Monster('rawr', p.createVector(), p.createVector(), p.createVector(1, 1, 1), p.color(0));
+            monster = new Monster('rawr', p.createVector(0, 0, 0), p.createVector(), p.createVector(1, 1, 1), p.color(0));
             monster.onDeath = function () { scene.sceneManager.load('victory') };
 
             scene.ready = true;
@@ -155,7 +160,6 @@ const bossFightScene = new Scene('boss_fight', function(scene) {
         unlockPointer();
         c.mousePressed(false);
         p.keyPressed = null;
-        p.setCamera(defaultCam);
     }
 
     scene.draw = function () {

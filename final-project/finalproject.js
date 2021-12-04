@@ -257,8 +257,6 @@ class Monster extends P5Mesh {
       this.collider.location = p5.Vector.add(this.location, this.localPos);
       this.damageCollider.location = p5.Vector.add(this.location, this.localPos);
 
-      console.log(this.shockwaves);
-
       const oldState = this.state;
       this.evalState(instance, ground);
       if (this.state !== oldState) {
@@ -309,6 +307,20 @@ class Monster extends P5Mesh {
    
    _onDeath() {
       if (this.onDeath) this.onDeath();
+   }
+
+}
+
+class Bat extends P5Mesh {
+
+   constructor(name, location, rotation, scale, color) {
+      super(name, location, rotation, scale, color, null);
+   }
+
+   drawMesh(instance) {
+      instance.cylinder(5, 20);
+      instance.translate(0, 10, 0);
+      instance.sphere(5);
    }
 
 }
@@ -500,7 +512,7 @@ let sketch = function(p) {
       sm.add(victoryScene);
       sm.add(defeatScene);
 
-      sm.load(openingScene);
+      sm.load(bossFightScene);
    };
    
    p.draw = function() {
