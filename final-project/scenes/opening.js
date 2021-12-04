@@ -72,14 +72,7 @@ const openingScene = new Scene('opening', function(scene) {
     };
 
     scene.unload = function () {
-        state = states.INITIAL;
-
         p.mousePressed = null;
-
-        person = null;
-        monster = null;
-        stars = [];
-        trees = [];
     }
 
     scene.draw = function () {

@@ -202,20 +202,21 @@ class Monster2D extends P5Mesh2D {
        //body
        instance.fill(50);
        instance.beginShape();
-       instance.curveVertex(50, 175);
-       instance.curveVertex(50, 175);
-       instance.curveVertex(70, 140);
-       instance.curveVertex(100, 150);
-       instance.curveVertex(135, 140);
-       instance.curveVertex(120, 180);
-       instance.curveVertex(130, 200);
-       instance.curveVertex(125, 240);
-       instance.curveVertex(95, 225);
-       instance.curveVertex(75, 260);
-       instance.curveVertex(60, 235);
-       instance.curveVertex(25, 200);
-       instance.curveVertex(40, 215);
-       instance.curveVertex(10, 180);
+         instance.curveVertex(50, 175);
+         instance.curveVertex(50, 175);
+         instance.curveVertex(70, 140);
+         instance.curveVertex(100, 150);
+         instance.curveVertex(135, 140);
+         instance.curveVertex(120, 180);
+         instance.curveVertex(130, 200);
+         instance.curveVertex(125, 240);
+         instance.curveVertex(95, 225);
+         instance.curveVertex(75, 260);
+         instance.curveVertex(60, 235);
+         instance.curveVertex(25, 200);
+         instance.curveVertex(40, 215);
+         instance.curveVertex(10, 180);
+         instance.curveVertex(50, 175);
        instance.endShape(instance.CLOSE);
        
        //face	
@@ -288,6 +289,7 @@ class Person2D extends P5Mesh2D {
            instance.curveVertex(315, 325);
            instance.curveVertex(315, 310);
            instance.curveVertex(305, 290);
+           instance.curveVertex(300, 290);
        instance.endShape(instance.CLOSE);
        
        //hands
@@ -320,6 +322,22 @@ class Tree2D extends P5Mesh2D {
 
 }
 
+class BasicCircle2D {
+
+   location;
+   radius;
+
+   constructor(location, radius) {
+      this.location = location;
+      this.radius = radius;
+   }
+
+   draw(instance) {
+      instance.circle(this.location.x, this.location.y, this.radius);
+   }
+
+}
+
 let sketch = function(p) {
 
    let canvas;
@@ -339,9 +357,14 @@ let sketch = function(p) {
       sm.add(houseScene);
       sm.add(doorsScene);
       sm.add(tilesScene);
-      sm.add(bossFight);
+      sm.add(batRoomScene);
+      sm.add(finalRoomScene);
+      sm.add(bossFightScene);
+      
+      sm.add(victoryScene);
+      sm.add(defeatScene);
 
-      sm.load(houseScene);
+      sm.load(openingScene);
    };
    
    p.draw = function() {

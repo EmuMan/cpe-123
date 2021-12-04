@@ -71,13 +71,6 @@ const houseScene = new Scene('house', function(scene) {
 
     scene.unload = function () {
         p.mousePressed = null;
-
-        state = states.INITIAL;
-
-        person = null;
-        monster = null;
-        stars = [];
-        trees = [];
     }
 
     scene.draw = function () {

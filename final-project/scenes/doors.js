@@ -19,7 +19,7 @@ const doorsScene = new Scene('doors', function(scene) {
             if (p.mouseX > 160 && p.mouseX < 240) {
                 scene.sceneManager.load('tiles');
             } else if (p.mouseX > 360 && p.mouseX < 440) {
-                scene.sceneManager.load('opening');
+                scene.sceneManager.load('defeat');
             }
         }
     }

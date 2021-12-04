@@ -1,4 +1,4 @@
-const bossFight = new Scene('boss_fight', function(scene) {
+const bossFightScene = new Scene('boss_fight', function(scene) {
 
     let p;
     let c;
@@ -79,7 +79,7 @@ const bossFight = new Scene('boss_fight', function(scene) {
         });
 
         let monsterHit = monster.collider.testRay(ray);
-        if (monsterHit && monsterHit.time < 30) monster.damage(1);
+        if (monsterHit && monsterHit.time < 30) monster.damage(10);
     }
 
     scene.load = (instance, canvas) => {
@@ -90,6 +90,11 @@ const bossFight = new Scene('boss_fight', function(scene) {
         physics = new Physics(p.createVector(0, -100, 0));
         pointerSetup();
         c.mousePressed(processMousePress);
+
+        p.keyPressed = function () {
+            // prevents keypresses from going to the rest of the page when this window is focused
+            return !(document.pointerLockElement === c.elt || document.mozPointerLockElement === c.elt);
+        }
 
         objects = [];
         trees = [];
