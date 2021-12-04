@@ -117,29 +117,106 @@ class MonsterParticle extends P5Sphere {
 
 }
 
-class Monster extends P5Mesh {
+class Shockwave extends P5Mesh {
 
-   collider;
-
-   state;
-
-   health;
-   time;
    particles;
+   collider;
+   maxRadius;
 
-   constructor(name, location, rotation, scale, color) {
-      super(name, location, rotation, scale, color);
-
-      this.collider = new SphereTrigger('monster_collider', this.location, 10);
-
-      this.health = 100;
-      this.time = 0;
+   constructor(name, location, rotation, scale, color, maxRadius) {
+      super(name, location, rotation, scale, color, null);
+      this.maxRadius = maxRadius;
+      this.collider = new SphereTrigger(`${name}_col`, location, 0);
       this.particles = [];
+   }
+
+   addParticle() {
+      const d = new p5.Vector(0, 0, this.collider.radius);
+      rotateVector(d, new p5.Vector(0, Math.random() * 2 * Math.PI, 0));
+      const v = p5.Vector.add(p5.Vector.random3D(), new p5.Vector(0, 3, 0));
+      this.particles.push(new MonsterParticle(`${this.name}_particle`, p5.Vector.add(this.location, d),
+                                              this.scale.copy(), this.color, v));
+   }
+
+   update(instance) {
+      let toRemove = 0;
+      this.particles.forEach(p => {
+         if (p.time > 0.3) {
+            toRemove++;
+            return;
+         }
+         p.update(instance);
+      });
+      for (let i = 0; i < toRemove; i++) this.particles.shift();
+      for (let i = 0; i < 10; i++) this.addParticle();
+
+      this.collider.radius += 150 * instance.deltaTime / 1000;
    }
 
    drawMesh(instance) {
       this.particles.forEach(p => p.addToScene(instance));
+   }
+
+   locationInside(loc) {
+      const distance = p5.Vector.sub(loc, this.location).mag();
+      if (distance < this.collider.radius && distance > this.collider.radius - 10) {
+         return true;
+      }
+   }
+
+}
+
+class Monster extends P5Mesh {
+
+   collider;
+   damageCollider;
+   activationTrigger;
+
+   states;
+   state;
+   stateTimer;
+   hasLanded;
+
+   health;
+   time;
+   particles;
+   shockwaves;
+   localPos;
+
+   onDeath;
+
+   constructor(name, location, rotation, scale, color) {
+      super(name, location, rotation, scale, color);
+
+      this.states = {
+         IDLE: 'idle',
+         DIVE: 'dive',
+         RISE: 'rise',
+         BLAST: 'blast'
+      }
+      this.state = this.states.IDLE;
+      this.stateTimer = 0;
+      this.hasLanded = false;
+
+
+      this.collider = new SphereTrigger('monster_collider', this.location, 10);
+      this.activationTrigger = new SphereTrigger('monster_trigger', this.location, 50);
+      this.damageCollider = new DynamicCollider('monster_damage', this.location, new p5.Vector(10, 10, 10));
+
+      this.health = 100;
+      this.time = 0;
+      this.particles = [];
+      this.shockwaves = [];
+      this.localPos = new p5.Vector();
+
+      this.onDeath = null;
+   }
+
+   drawMesh(instance) {
+      this.particles.forEach(p => p.addToScene(instance));
+      this.shockwaves.forEach(p => p.addToScene(instance));
       instance.push();
+         instance.translate(this.localPos);
          instance.rotateX(this.time);
          instance.rotateY(this.time);
          instance.sphere(7, 5, 5);
@@ -149,12 +226,14 @@ class Monster extends P5Mesh {
    addParticle() {
       const v = p5.Vector.random3D();
       v.mult(30);
-      this.particles.push(new MonsterParticle(`${this.name}_particle`, this.location.copy(),
+      this.particles.push(new MonsterParticle(`${this.name}_particle`, p5.Vector.add(this.location, this.localPos),
                                               this.scale.copy(), this.color, v));
    }
 
-   update(instance) {
+   update(instance, ground) {
       this.time += instance.deltaTime / 1000;
+      this.stateTimer += instance.deltaTime / 1000;
+
       let toRemove = 0;
       this.particles.forEach(p => {
          if (p.time > 1) {
@@ -164,19 +243,72 @@ class Monster extends P5Mesh {
          p.update(instance);
       });
       for (let i = 0; i < toRemove; i++) this.particles.shift();
+
+      toRemove = 0;
+      this.shockwaves.forEach(s => {
+         if (s.collider.radius > s.maxRadius) {
+            toRemove++;
+            return;
+         }
+         s.update(instance);
+      });
+      for (let i = 0; i < toRemove; i++) this.shockwaves.shift();
+
+      this.collider.location = p5.Vector.add(this.location, this.localPos);
+      this.damageCollider.location = p5.Vector.add(this.location, this.localPos);
+
+      console.log(this.shockwaves);
+
+      const oldState = this.state;
+      this.evalState(instance, ground);
+      if (this.state !== oldState) {
+         this.stateTimer = 0;
+      }
+   }
+
+   evalState(instance, ground) {
+      switch (this.state) {
+         case this.states.IDLE:
+            if (this.stateTimer > 1) {
+               this.state = instance.random(100) < 50 ? this.states.DIVE : this.states.BLAST;
+            }
+            break;
+         case this.states.DIVE:
+            if (this.stateTimer < 0.2) {
+               this.localPos.add(p5.Vector.mult(new p5.Vector(0, 40, 0), instance.deltaTime / 1000));
+            } else {
+               this.localPos.add(p5.Vector.mult(new p5.Vector(0, -200, 0), instance.deltaTime / 1000));
+               this.damageCollider.velocity = new p5.Vector(0, -200, 0);
+               if (this.damageCollider.testCollision(ground, instance.deltaTime / 1000)) {
+                  this.state = this.states.RISE;
+                  this.shockwaves.push(new Shockwave(`${this.name}_sw`, p5.Vector.add(this.localPos, new p5.Vector(0, 7, 0)), this.rotation, this.scale, this.color, 200));
+               }
+            }
+            break;
+         case this.states.RISE:
+            this.localPos.y += 40 * instance.deltaTime / 1000;
+            if (this.localPos.y > 0) {
+               this.localPos.y = 0;
+               this.state = this.states.IDLE;
+            }
+            break;
+         case this.states.BLAST:
+            this.state = this.states.DIVE;
+            break;
+      }
    }
 
    damage(hp) {
       this.health -= hp;
       if (this.health <= 0) {
          this.health = 0;
-         this.onDeath();
+         this._onDeath();
       }
       console.log(this.health);
    }
    
-   onDeath() {
-
+   _onDeath() {
+      if (this.onDeath) this.onDeath();
    }
 
 }
@@ -338,6 +470,8 @@ class BasicCircle2D {
 
 }
 
+let defaultCam;
+
 let sketch = function(p) {
 
    let canvas;
@@ -350,6 +484,8 @@ let sketch = function(p) {
 
       let eyeZ = ((p.height / 2) / p.tan(p.PI / 6));
       p.perspective(p.PI / 3, p.width / p.height, eyeZ / 400, eyeZ * 10);
+
+      defaultCam = p.createCamera();
 
       sm = new SceneManager(p, canvas);
 

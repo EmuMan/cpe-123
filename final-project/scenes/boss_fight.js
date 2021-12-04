@@ -14,7 +14,13 @@ const bossFightScene = new Scene('boss_fight', function(scene) {
 
     let physics;
 
-    let doorOpening;
+    let state;
+
+    const states = {
+        PREFIGHT: 'prefight',
+        FIGHTING: 'fighting',
+        POSTFIGHT: 'postfight'
+    }
 
     function lockPointer() {
         c.elt.requestPointerLock();
@@ -68,16 +74,6 @@ const bossFightScene = new Scene('boss_fight', function(scene) {
     function processMousePress() {
         let ray = new Ray(camera.location, camera.getForwardVector());
 
-        colliders.forEach(c => {
-            if (c.name === 'door_col') {
-                let hit = c.testRay(ray);
-                if (hit && hit.time < 20) {
-                    doorOpening = true;
-                    physics.removeStaticCollider(c);
-                }
-            }
-        });
-
         let monsterHit = monster.collider.testRay(ray);
         if (monsterHit && monsterHit.time < 30) monster.damage(10);
     }
@@ -85,6 +81,8 @@ const bossFightScene = new Scene('boss_fight', function(scene) {
     scene.load = (instance, canvas) => {
         c = canvas;
         p = instance;
+
+        state = states.PREFIGHT;
 
         camera = new PlayerCamera('camera', p.createVector(0, 10, 0), 0, 0);
         physics = new Physics(p.createVector(0, -100, 0));
@@ -147,20 +145,17 @@ const bossFightScene = new Scene('boss_fight', function(scene) {
             }
 
             monster = new Monster('rawr', p.createVector(), p.createVector(), p.createVector(1, 1, 1), p.color(0));
+            monster.onDeath = function () { scene.sceneManager.load('victory') };
 
             scene.ready = true;
         });
     };
 
     scene.unload = function () {
-        p = null;
-        c = null;
-
-        camera = null;
-        character = null;
-        monster = null;
-
-        
+        unlockPointer();
+        c.mousePressed(false);
+        p.keyPressed = null;
+        p.setCamera(defaultCam);
     }
 
     scene.draw = function () {
@@ -179,20 +174,25 @@ const bossFightScene = new Scene('boss_fight', function(scene) {
 
         p.background(20, 30, 40);
 
-        if (doorOpening) {
-            markers.forEach(m => {
-                if (m.name === 'door_hinge') {
-                    m.rotation.y -= 3 * p.deltaTime / 1000;
-                    if (m.rotation.y < -p.PI / 2) {
-                        m.rotation.y = -p.PI / 2;
-                        doorOpening = false;
-                    }
-                }
-            });
-        }
-
         monster.addParticle();
-        monster.update(p);
+        let ground;
+        for (let i = 0; i < colliders.length; i++) {
+            if (colliders[i].name === 'ground_col') {
+                ground = colliders[i];
+                break;
+            }
+        }
+        monster.update(p, ground);
+
+        grounded = false;
+        character.collisions.forEach(c => {
+            if (c.normal.equals(p.createVector(0, -1, 0))) grounded = true;
+        });
+        monster.shockwaves.forEach(s => {
+            if (s.locationInside(character.location) && grounded) {
+                scene.sceneManager.load('defeat');
+            }
+        });
 
         camera.addToScene(p);
         objects.forEach(t => t.addToScene(p));
