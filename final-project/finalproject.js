@@ -181,6 +181,145 @@ class Monster extends P5Mesh {
 
 }
 
+class Monster2D extends P5Mesh2D {
+
+   time;
+   movementRadius;
+   movementSpeed;
+
+   constructor(location, rotation, scale) {
+       super('monster', location, rotation, scale, null, null);
+       this.time = 0;
+       this.movementRadius = 40;
+       this.movementSpeed = 3;
+   }
+
+   drawMesh(instance) {
+       const theta = this.time * this.movementSpeed;
+       instance.translate(Math.cos(theta) * this.movementRadius,
+                          Math.sin(theta) * this.movementRadius);
+       
+       //body
+       instance.fill(50);
+       instance.beginShape();
+       instance.curveVertex(50, 175);
+       instance.curveVertex(50, 175);
+       instance.curveVertex(70, 140);
+       instance.curveVertex(100, 150);
+       instance.curveVertex(135, 140);
+       instance.curveVertex(120, 180);
+       instance.curveVertex(130, 200);
+       instance.curveVertex(125, 240);
+       instance.curveVertex(95, 225);
+       instance.curveVertex(75, 260);
+       instance.curveVertex(60, 235);
+       instance.curveVertex(25, 200);
+       instance.curveVertex(40, 215);
+       instance.curveVertex(10, 180);
+       instance.endShape(instance.CLOSE);
+       
+       //face	
+       instance.fill(255);
+       instance.ellipse(75, 160, 5, 15);
+       instance.ellipse(90, 160, 5, 15);
+   }
+
+   update(deltaTime) { this.time += deltaTime; }
+
+}
+
+class Person2D extends P5Mesh2D {
+
+   surprised;
+
+   leftEyeLoc;
+   rightEyeLoc;
+
+   constructor(location, rotation, scale) {
+       super('Person2D', location, rotation, scale, null, null);
+       this.surprised = false;
+   }
+
+   drawMesh(instance) {
+       //head and neck
+       instance.fill(219, 190, 150);
+       //head
+       instance.ellipse(300, 265, 42.5);
+       //neck
+       instance.rect(295, 285, 10, 10);
+
+       //white of eyes
+       instance.fill(255);
+       //L
+       instance.ellipse(290, 260, 15);
+       //R
+       instance.ellipse(310, 260, 15);
+
+       this.leftEyeLoc = new p5.Vector(instance.mouseX - 290, instance.mouseY - 260);
+       this.rightEyeLoc = new p5.Vector(instance.mouseX - 310, instance.mouseY - 260);
+
+       this.leftEyeLoc.setMag(5);
+       this.rightEyeLoc.setMag(5);
+   
+       //pupils
+       instance.fill(0);
+       //L
+       instance.ellipse(290 + this.leftEyeLoc.x, 260 + this.leftEyeLoc.y, 7.5);
+       //R
+       instance.ellipse(310 + this.rightEyeLoc.x, 260 + this.rightEyeLoc.y, 7.5);
+
+       //mouth
+       instance.fill(0);
+       if (this.surprised) instance.ellipse(300, 275, 10);
+       else instance.ellipse(300, 275, 10, 5);
+
+       //pants
+       instance.fill(0, 0, 100);
+       instance.rect(290, 325, 20, 25);
+       
+       //shirt
+       instance.fill(150, 0, 0);
+       instance.beginShape();
+           instance.curveVertex(300, 290);
+           instance.curveVertex(300, 290);
+           instance.curveVertex(295, 290);
+           instance.curveVertex(285, 310);
+           instance.curveVertex(285, 325);
+           instance.curveVertex(315, 325);
+           instance.curveVertex(315, 310);
+           instance.curveVertex(305, 290);
+       instance.endShape(instance.CLOSE);
+       
+       //hands
+       instance.fill(219, 190, 150);
+       instance.ellipse(290, 325, 10);
+       instance.ellipse(310, 325, 10);
+
+       //shoes
+       instance.fill(255);
+       instance.ellipse(295, 350, 10, 3);
+       instance.ellipse(305, 350, 10, 3);
+   }
+
+}
+
+class Tree2D extends P5Mesh2D {
+
+   constructor(location, rotation, scale) {
+       super('tree', location, rotation, scale);
+   }
+
+   drawMesh(instance) {
+       instance.fill(70, 40, 20);
+       instance.rect(-5, -30, 10, 30);
+     instance.fill(0, 50, 0);
+     instance.triangle(-15, -20, 0, -45, 15, -20);
+     instance.triangle(-13, -30, 0, -55, 13, -30);
+     instance.triangle(-11, -40, 0, -65, 11, -40);
+   }
+
+}
+
 let sketch = function(p) {
 
    let canvas;
@@ -196,11 +335,13 @@ let sketch = function(p) {
 
       sm = new SceneManager(p, canvas);
 
-      sm.add(bossFight);
       sm.add(openingScene);
+      sm.add(houseScene);
+      sm.add(doorsScene);
       sm.add(tilesScene);
+      sm.add(bossFight);
 
-      sm.load(openingScene);
+      sm.load(houseScene);
    };
    
    p.draw = function() {
