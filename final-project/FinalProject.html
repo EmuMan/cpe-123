@@ -1,0 +1,44 @@
+<html>
+<head>
+   <title>CPE 123 - Computational Art</title>
+</head>
+
+<body bgcolor = 333388 text = FFFFFF link = ffaa00 vlink = ffaa00 aLink = ffaa00> 
+   <font size=2 face="Arial,Helvetica">
+   <h2>
+   <p>
+      Computational Art<br>
+      Final Project
+   </p>
+   
+   <script language="javascript" type="text/javascript" src="./libraries/p5.js"></script>
+   <script language="javascript" type="text/javascript" src="./libraries/addons/p5.sound.js"></script>
+   <script language="javascript" type="text/javascript" src="./p5engine.js"></script>
+
+   <script language="javascript" type="text/javascript" src="./scenes/opening.js"></script>
+   <script language="javascript" type="text/javascript" src="./scenes/house.js"></script>
+   <script language="javascript" type="text/javascript" src="./scenes/doors.js"></script>
+   <script language="javascript" type="text/javascript" src="./scenes/tiles.js"></script>
+   <script language="javascript" type="text/javascript" src="./scenes/bat_room.js"></script>
+   <script language="javascript" type="text/javascript" src="./scenes/final_room.js"></script>
+   <script language="javascript" type="text/javascript" src="./scenes/boss_fight.js"></script>
+   <script language="javascript" type="text/javascript" src="./scenes/victory.js"></script>
+   <script language="javascript" type="text/javascript" src="./scenes/defeat.js"></script>
+   <script language="javascript" type="text/javascript" src="finalproject.js"></script>
+
+   <p>Click any of the below to jump to a scene:</p>
+   <span>
+      <button onclick="loadScene('opening')" type="button">Opening</button>
+      <button onclick="loadScene('house')" type="button">House</button>
+      <button onclick="loadScene('doors')" type="button">Doors</button>
+      <button onclick="loadScene('tiles')" type="button">Tiles</button>
+      <button onclick="loadScene('bat_room')" type="button">Bat Room</button>
+      <button onclick="loadScene('final_room')" type="button">Final Room</button>
+      <button onclick="loadScene('boss_fight')" type="button">Boss Fight</button>
+      <button onclick="loadScene('victory')" type="button">Victory</button>
+      <button onclick="loadScene('defeat')" type="button">Defeat</button>
+   </span>
+
+   <style> body {padding: 0; margin: 20;} </style>
+</body>
+</html>
