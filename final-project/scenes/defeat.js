@@ -16,7 +16,8 @@ const defeatScene = new Scene('defeat', function(scene) {
     let font;
 
     function onMouseClick() {
-        scene.sceneManager.load('opening');
+        // one second time buffer to prevent accidental skipping
+        if (scene.time > 1) scene.sceneManager.load('opening');
     }
 
     scene.load = (instance, canvas) => {
@@ -35,9 +36,6 @@ const defeatScene = new Scene('defeat', function(scene) {
     }
 
     scene.draw = function () {
-        p.camera(0, (p.width / 2) / (p.tan(p.PI / 3)), 0,
-                 0, 0, 0,
-                 0, -1, 0);
         convertScene(p);
 
 		p.background(100);

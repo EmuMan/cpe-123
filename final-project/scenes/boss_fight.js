@@ -16,14 +16,6 @@ const bossFightScene = new Scene('boss_fight', function(scene) {
 
     let physics;
 
-    let state;
-
-    const states = {
-        PREFIGHT: 'prefight',
-        FIGHTING: 'fighting',
-        POSTFIGHT: 'postfight'
-    }
-
     function lockPointer() {
         c.elt.requestPointerLock();
     }
@@ -53,7 +45,6 @@ const bossFightScene = new Scene('boss_fight', function(scene) {
     function pointerSetup() {
         c.elt.requestPointerLock = c.elt.requestPointerLock || c.elt.mozRequestPointerLock;
         document.exitPointerLock = document.exitPointerLock || document.mozExitPointerLock;
-        c.mouseClicked(lockPointer);
         document.addEventListener('pointerlockchange', pointerLockChange, false);
         document.addEventListener('mozpointerlockchange', pointerLockChange, false);
     }
@@ -69,11 +60,13 @@ const bossFightScene = new Scene('boss_fight', function(scene) {
         if (p.keyIsDown(68)) character.addForce(rotateVector(p.createVector(-ma, 0, 0), rot)); // d
         if (p.keyIsDown(87)) character.addForce(rotateVector(p.createVector(0, 0, -ma), rot)); // w
         if (p.keyIsDown(83)) character.addForce(rotateVector(p.createVector(0, 0, ma), rot)); // s
-        if (p.keyIsDown(32) && grounded) character.addForce(p.createVector(0, 3000, 0)); // space
+        if (p.keyIsDown(32) && grounded) character.addForce(p.createVector(0, 50, 0)); // space
         if (p.keyIsDown(27)) unlockPointer(); // esc
     }
 
     function processMousePress() {
+        lockPointer();
+
         let ray = new Ray(camera.location, camera.getForwardVector());
 
         let monsterHit = monster.collider.testRay(ray);
@@ -83,8 +76,6 @@ const bossFightScene = new Scene('boss_fight', function(scene) {
     scene.load = (instance, canvas) => {
         c = canvas;
         p = instance;
-
-        state = states.PREFIGHT;
 
         camera = new PlayerCamera('camera', p.createVector(0, 10, 0), 0, 0);
         physics = new Physics(p.createVector(0, -100, 0));
@@ -158,8 +149,12 @@ const bossFightScene = new Scene('boss_fight', function(scene) {
 
     scene.unload = function () {
         unlockPointer();
-        c.mousePressed(false);
+        // the p5.js documentation says that false can be passed here to prevent functions from firing,
+        // but from my experience it just treats the false as a function and tries to call it. not sure
+        // why, but this is the workaround i guess.
+        c.mousePressed(function() { });
         p.keyPressed = null;
+        p.camera(0, 0, (p.height / 2) / (p.tan(p.PI / 6)), 0, 0, 0, 0, 1, 0);
     }
 
     scene.draw = function () {

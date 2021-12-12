@@ -39,7 +39,7 @@ const tilesScene = new Scene('tiles', function(scene) {
             } else {
                 scene.sceneManager.load('defeat');
             }
-        } else if (p.mouseX > 245 && p.mouseX < 283 && p.mouseY > 30 && p.mouseY < 90) {
+        } else if (tileProgress >= correctTiles.length && p.mouseX > 245 && p.mouseX < 283 && p.mouseY > 30 && p.mouseY < 90) {
             scene.sceneManager.load('bat_room');
         }
     }

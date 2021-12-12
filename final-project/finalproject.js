@@ -1,8 +1,10 @@
 const maxMovementSpeed = 80;
-const movementAccel = 350;
+const movementAccel = 6;
 
 const cameraSensitivity = 0.001;
 const cameraYawThreshold = 0.1;
+
+let gsm;
 
 class Branch {
 
@@ -223,9 +225,10 @@ class Monster extends P5Mesh {
       instance.pop();
    }
 
-   addParticle() {
+   addParticle(vMultiplier) {
+      if (vMultiplier === undefined) vMultiplier = 1;
       const v = p5.Vector.random3D();
-      v.mult(30);
+      v.mult(30 * vMultiplier);
       this.particles.push(new MonsterParticle(`${this.name}_particle`, p5.Vector.add(this.location, this.localPos),
                                               this.scale.copy(), this.color, v));
    }
@@ -298,11 +301,13 @@ class Monster extends P5Mesh {
 
    damage(hp) {
       this.health -= hp;
+      for (let i = 0; i < 20; i++) {
+         this.addParticle(3);
+      }
       if (this.health <= 0) {
          this.health = 0;
          this._onDeath();
       }
-      console.log(this.health);
    }
    
    _onDeath() {
@@ -482,6 +487,10 @@ class BasicCircle2D {
 
 }
 
+function loadScene(name) {
+   gsm.load(name);
+}
+
 let defaultCam;
 
 let sketch = function(p) {
@@ -500,6 +509,7 @@ let sketch = function(p) {
       defaultCam = p.createCamera();
 
       sm = new SceneManager(p, canvas);
+      gsm = sm;
 
       sm.add(openingScene);
       sm.add(houseScene);
@@ -512,7 +522,7 @@ let sketch = function(p) {
       sm.add(victoryScene);
       sm.add(defeatScene);
 
-      sm.load(bossFightScene);
+      sm.load(openingScene);
    };
    
    p.draw = function() {

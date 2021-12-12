@@ -622,7 +622,7 @@ class DynamicCollider extends BoxTrigger {
     }
 
     applyForces(deltaTime) {
-        this.velocity.add(p5.Vector.mult(this.getTotalForce(), deltaTime));
+        this.velocity.add(this.getTotalForce());
     }
 
     addToScene(instance) {
@@ -710,7 +710,7 @@ class Physics {
 
     update(deltaTime) {
         this.dynamicColliders.forEach(dc => {
-            dc.addForce(this.gravity);
+            dc.addForce(p5.Vector.mult(this.gravity, deltaTime));
             dc.applyFriction(deltaTime);
             dc.applyForces(deltaTime);
 
@@ -756,11 +756,15 @@ class Physics {
 class Scene {
 
     instance;
+    canvas;
     sceneManager;
 
     name;
     time;
     ready;
+    _inDraw; // used to call functions after draw if draw is running
+    _loadAfter; // used to load scenes after this one is finished drawing
+    exiting;
 
     load;
     draw;
@@ -770,6 +774,9 @@ class Scene {
         this.name = name;
         this.time = 0;
         this.ready = false;
+        this._inDraw = false;
+        this._loadAfter = null;
+        this.exiting = false;
 
         setup(this);
     }
@@ -777,16 +784,36 @@ class Scene {
     _load(sceneManager, instance, canvas) {
         this.sceneManager = sceneManager;
         this.instance = instance;
+        this.canvas = canvas;
+        this.time = 0;
         if (this.load) this.load(instance, canvas);
     }
 
     _draw() {
         this.time += this.instance.deltaTime / 1000;
+        this._inDraw = true;
         if (this.draw && this.ready) this.draw();
+        this._inDraw = false;
+        if (this.exiting) {
+            // this needs to be done here so the previous draw call can fully complete before the scene is unloaded
+            this._executeTransition();
+        }
     }
 
     _unload() {
+        this.ready = false;
+        if (!this._inDraw) {
+            this._executeTransition();
+        } else {
+            this.exiting = true;
+        }
+    }
+
+    _executeTransition() {
         if (this.unload) this.unload();
+        if (this._loadAfter) this._loadAfter._load(this.sceneManager, this.instance, this.canvas);
+        this._loadAfter = null;
+        this.exiting = false;
     }
 
 }
@@ -819,9 +846,13 @@ class SceneManager {
         const s = isString(scene);
         for (let i = 0; i < this.scenes.length; i++) {
             if ((s ? this.scenes[i].name : this.scenes[i]) === scene) {
-                if (this.activeScene) this.activeScene._unload();
+                if (this.activeScene) {
+                    this.activeScene._loadAfter = this.scenes[i];
+                    this.activeScene._unload();
+                } else {
+                    this.scenes[i]._load(this, this.instance, this.canvas);
+                }
                 this.activeScene = this.scenes[i];
-                this.activeScene._load(this, this.instance, this.canvas);
                 break;
             }
         }

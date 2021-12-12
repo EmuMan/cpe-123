@@ -16,7 +16,8 @@ const victoryScene = new Scene('victory', function(scene) {
     let font;
 
     function onMouseClick() {
-        scene.sceneManager.load('opening');
+        // one second time buffer to prevent accidental skipping
+        if (scene.time > 1) scene.sceneManager.load('opening');
     }
 
     scene.load = (instance, canvas) => {
@@ -44,10 +45,10 @@ const victoryScene = new Scene('victory', function(scene) {
         p.textFont(font);
 		p.fill(0);
 		p.textSize(61);
-		p.text("YOU WIN", 147.5, 100);
+		p.text("YOU WIN!", 147.5, 100);
 		p.fill(255);
 		p.textSize(60);
-		p.text("YOU WIN", 150, 100);
+		p.text("YOU WIN!", 150, 100);
         p.textSize(20);
         p.text('Click anywhere to restart', 180, 190);
     }
