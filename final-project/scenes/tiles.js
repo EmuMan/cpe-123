@@ -124,8 +124,7 @@ const tilesScene = new Scene('tiles', function(scene) {
         p.textSize(10);
 		p.text("Click on the tiles to make your way to the door", 180, 365);
 		p.text("Be careful, a wrong click could be fatal", 200, 380);
-		p.textSize(6);
-		p.text("hint: white tiles only, straight path", 230, 392);
+		p.text("hint: white tiles only, straight path", 210, 395);
     }
 
 });
